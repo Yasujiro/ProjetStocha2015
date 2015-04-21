@@ -11,7 +11,6 @@ public class QueueSystem {
 	
 	private ServerStocha[] servers;
 	private double lambda;
-	private double mu=2;
 	private Simulator simulator;
 	private Arrival arrival;
 	private ExponentialGen expGen;
@@ -66,10 +65,10 @@ public class QueueSystem {
 			switch(p)
 			{
 				case Poisson:
-					servers[i] = new ServerPoisson(pStream,mu,simulator);
+					servers[i] = new ServerPoisson(pStream,2,simulator);
 					break;
 				case Erlang:
-					servers[i] = new ServerErlang(pStream,(int)mu);
+					servers[i] = new ServerErlang(pStream,(int)2,simulator);
 					break;
 			}
 			
@@ -117,14 +116,13 @@ public class QueueSystem {
 		public void actions() {
 			
 			
-			double rho = lambda/mu;
-			System.out.println("Rho : "+rho);
-			System.out.println("E[L] : "+ (rho)/(1-rho));
-			System.out.println("E[S] :"+ (1/mu)/(1-rho));
+//			double rho = lambda/mu;
+//			System.out.println("Rho : "+rho);
+//			System.out.println("E[L] : "+ (rho)/(1-rho));
+//			System.out.println("E[S] :"+ (1/mu)/(1-rho));
 			for(int i=0;i<servers.length;i++)
 			{
-				System.out.println("Server "+i+", moyenne client system : "+servers[i].avrgCustomerInSystem());
-				System.out.println("Server "+i+", moyenne temps dans le système : "+servers[i].avgWaitingTime());
+				servers[i].report(lambda);
 			}
 			simulator.stop();
 			

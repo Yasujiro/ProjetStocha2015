@@ -82,6 +82,12 @@ public abstract class ServerStocha {
 		return waitTimeObservation.average();
 	}
 	
+	public void report(double lambdaArrival)
+	{
+		System.out.println("Nombre moyen de personne dans la system "+avrgCustomerInSystem());
+		System.out.println("Temps moyen dans le system "+avgWaitingTime());
+	}
+	
 	//Classe d'Event permettnt de gérer les départ des client.
 	class Departure extends Event{
 

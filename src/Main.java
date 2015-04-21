@@ -3,7 +3,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		
-		QueueSystem system1 = new QueueSystem(1, 100000, 1,ProcessusService.Poisson);
+		QueueSystem system1 = new QueueSystem(1, 100000, 1,ProcessusService.Erlang);
 		QueueSystem system3 = new QueueSystem(.3, 100000, 1,ProcessusService.Poisson);
 		QueueSystem system2 = new QueueSystem(.5, 100000, 1,ProcessusService.Poisson);
 		System.out.println("System 1 :");
