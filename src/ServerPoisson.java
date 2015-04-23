@@ -1,5 +1,4 @@
 import java.util.LinkedList;
-
 import umontreal.iro.lecuyer.randvar.ExponentialGen;
 import umontreal.iro.lecuyer.rng.MRG32k3a;
 import umontreal.iro.lecuyer.simevents.Simulator;

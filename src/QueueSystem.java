@@ -1,7 +1,6 @@
 import umontreal.iro.lecuyer.randvar.ExponentialGen;
 import umontreal.iro.lecuyer.rng.MRG32k3a;
 import umontreal.iro.lecuyer.simevents.Event;
-import umontreal.iro.lecuyer.simevents.Sim;
 import umontreal.iro.lecuyer.simevents.Simulator;
 
 

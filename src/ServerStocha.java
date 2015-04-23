@@ -1,11 +1,6 @@
 import java.util.LinkedList;
-
-
-
-
 import umontreal.iro.lecuyer.randvar.RandomVariateGen;
 import umontreal.iro.lecuyer.simevents.Event;
-import umontreal.iro.lecuyer.simevents.Sim;
 import umontreal.iro.lecuyer.simevents.Simulator;
 import umontreal.iro.lecuyer.stat.Tally;
 
