@@ -16,6 +16,7 @@ public class ServerErlang extends ServerStocha {
 		depart = new Departure();
 		depart.setSimulator(simulator);
 		systemObs = new Tally();
+		servTimeObservation = new Tally();
 		waitTimeObservation = new Tally();
 		
 		
@@ -23,7 +24,7 @@ public class ServerErlang extends ServerStocha {
 	
 	private double muK()
 	{
-		return 4*k;
+		return 2*k;
 	}
 	
 	public void report(double lambdaArrival)
@@ -32,11 +33,15 @@ public class ServerErlang extends ServerStocha {
 		double coefVarService = (Math.sqrt(k/(Math.pow(muK(), 2)))) / (k/muK());
 		double num = Math.pow(rho, 2)*(1+Math.pow(coefVarService,2));
 		double deno = 2*(1-rho);
-		System.out.println("Serveur Erlang");
+		double moyenneService =k/muK();
+		double moment2 =(k/Math.pow(muK(), 2))+ Math.pow(moyenneService, 2);//Variance+E[X]²
+		
+		System.out.println("\nServeur Erlang");
 		System.out.println("Rho : "+rho);
-		System.out.println("E[L] : "+ (rho + (num/deno)));
+//		System.out.println("E[L] : "+ (rho + (num/deno)));
+//		System.out.println("E[B] :"+ moyenneService );
+//		System.out.println("E[W] : "+(rho/(1-rho))*(moment2/(2*moyenneService)));
 		super.report(lambdaArrival);
-		//System.out.println("E[S] :"+ (1/k)/(1-rho));
 		
 	}
 }

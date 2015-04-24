@@ -12,6 +12,7 @@ public abstract class ServerStocha {
 	protected Simulator simulator; 
 	protected RandomVariateGen distribution;
 	protected Tally systemObs;
+	protected Tally servTimeObservation;
 	protected Tally waitTimeObservation;
 	protected Departure depart;
 	
@@ -38,6 +39,7 @@ public abstract class ServerStocha {
 	//Planifie l'event de départ du client entrant "en service".
 	private void startOfService(Customer cust) {
 		currentCustomer = cust;
+		waitTimeObservation.add(simulator.time()-cust.getArrivalTime());
 		depart.schedule(currentCustomer.getServTime());
 	}
 	
@@ -72,15 +74,21 @@ public abstract class ServerStocha {
 		return systemObs.average();
 	}
 	//Retourne la moyenne du temps passé dans le system.
-	public double avgWaitingTime()
+	public double avgTimeInSystem()
+	{
+		return servTimeObservation.average();
+	}
+	public double avgTimeInQueue()
 	{
 		return waitTimeObservation.average();
 	}
 	
 	public void report(double lambdaArrival)
 	{
-		System.out.println("Nombre moyen de personne dans la system "+avrgCustomerInSystem());
-		System.out.println("Temps moyen dans le system "+avgWaitingTime());
+//		System.out.println("Nombre moyen de personne dans la system "+avrgCustomerInSystem());
+//		System.out.println("Temps moyen dans le system "+avgTimeInSystem());
+		System.out.println("Temps moyen d'attente :"+avgTimeInQueue());
+		System.out.println("---Fin rapport serveur----\n");
 	}
 	
 	//Classe d'Event permettnt de gérer les départ des client.
@@ -95,7 +103,8 @@ public abstract class ServerStocha {
 		public void actions() {			
 			
 			Customer leavingCust = endOfService();
-			waitTimeObservation.add(simulator.time()-leavingCust.getArrivalTime());
+			servTimeObservation.add(simulator.time()-leavingCust.getArrivalTime());
+			
 			if(waitingList.size() >0)
 			{
 				startOfService(waitingList.removeFirst());

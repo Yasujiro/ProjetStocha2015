@@ -1,4 +1,5 @@
 import umontreal.iro.lecuyer.randvar.ExponentialGen;
+import umontreal.iro.lecuyer.rng.MRG31k3p;
 import umontreal.iro.lecuyer.rng.MRG32k3a;
 import umontreal.iro.lecuyer.simevents.Event;
 import umontreal.iro.lecuyer.simevents.Simulator;
@@ -8,6 +9,7 @@ import umontreal.iro.lecuyer.simevents.Simulator;
 
 public class QueueSystem {
 	
+	private static MRG31k3p randomSeedGen = new MRG31k3p();
 	private ServerStocha[] servers;
 	private double lambda;
 	private Simulator simulator;
@@ -56,7 +58,7 @@ public class QueueSystem {
 		{
 			for(int j =0 ; j<seed.length;j++)
 			{
-				seed[j] = (1455*(j+1))+((i+1)*9856);
+				seed[j] = randomSeedGen.nextInt(1, 429494444);
 			}
 			
 			MRG32k3a pStream = new MRG32k3a();
@@ -67,7 +69,7 @@ public class QueueSystem {
 					servers[i] = new ServerPoisson(pStream,2,simulator);
 					break;
 				case Erlang:
-					servers[i] = new ServerErlang(pStream,(int)2,simulator);
+					servers[i] = new ServerErlang(pStream,(int)1,simulator);
 					break;
 			}
 			

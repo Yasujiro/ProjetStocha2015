@@ -16,6 +16,7 @@ public class ServerPoisson extends ServerStocha {
 		distribution = new ExponentialGen(dis, mu);
 		depart = new Departure();
 		systemObs = new Tally();
+		servTimeObservation = new Tally();
 		waitTimeObservation = new Tally();
 		simulator = sim;
 		depart.setSimulator(simulator);
@@ -25,10 +26,11 @@ public class ServerPoisson extends ServerStocha {
 	public void report(double lambdaArrival)
 	{
 		double rho = lambdaArrival/mu;
-		System.out.println("Serveur Poisson");
-		System.out.println("Rho : "+rho);
-		System.out.println("E[L] : "+ (rho)/(1-rho));
-		System.out.println("E[S] :"+ (1/mu)/(1-rho));
+		System.out.println("\nServeur Poisson");
+//		System.out.println("Rho : "+rho);
+//		System.out.println("E[L] : "+ (rho)/(1-rho));
+//		System.out.println("E[S] :"+ (1/mu)/(1-rho));
+//		System.out.println("E[W] : "+rho/(mu*(1-rho)));
 		
 		super.report(lambdaArrival);
 	}
