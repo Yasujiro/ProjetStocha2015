@@ -16,9 +16,10 @@ public class QueueSystem {
 	private Arrival arrival;
 	private ExponentialGen expGen;
 	private double timeOfSim;
+	private QueueSelection queueSelection;
 	
 	
-	public QueueSystem(double lambda, double time,int nbServ,ProcessusService tempsService)
+	public QueueSystem(double lambda, double time, int nbServ, ProcessusService tempsService, QueueSelection queueSelection)
 	{
 
 		simulator = new Simulator(); //Instance de simulation, contient la liste des events, le scheduler.
@@ -28,7 +29,7 @@ public class QueueSystem {
 		arrival.setSimulator(simulator);
 		initializeArrivalGen();
 		initializeServers(tempsService,nbServ);
-		
+		this.queueSelection = queueSelection;
 	}
 
 	public void LaunchSimu() {
@@ -99,14 +100,19 @@ public class QueueSystem {
 			
 			ServerStocha choosenServ = servers[0];
 			
-			for(int i=1;i<servers.length && (choosenServ.customerInSystem()>0);i++)
-			{
-				if(servers[i].customerInSystem()<choosenServ.customerInSystem())
-					choosenServ = servers[i];
+			if (queueSelection == QueueSelection.shortestFirst) {
+				for(int i=1;i<servers.length && (choosenServ.customerInSystem()>0);i++)
+				{
+					if(servers[i].customerInSystem()<choosenServ.customerInSystem())
+						choosenServ = servers[i];
+				}
+			} else {
+				double rand = Math.random() * (servers.length - 1); // Approximatively random => Maybe there is a better choice from ssj ?
+				int discreteRand = (int) Math.round(rand);
+				choosenServ = servers[discreteRand];
 			}
 			
 			choosenServ.requestServer(cust);
-			
 		}
 		
 	}
