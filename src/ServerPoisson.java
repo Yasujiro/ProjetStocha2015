@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.LinkedList;
+
 import umontreal.iro.lecuyer.randvar.ExponentialGen;
 import umontreal.iro.lecuyer.rng.MRG32k3a;
 import umontreal.iro.lecuyer.simevents.Simulator;
@@ -9,20 +11,18 @@ public class ServerPoisson extends ServerStocha {
 	
 	private double mu;
 	
-	public ServerPoisson(MRG32k3a dis,double mu,Simulator sim)
+	public ServerPoisson(MRG32k3a dis,double mu)
 	{
 		this.mu = mu;
-		waitingList = new LinkedList<>();
+		observer = new ArrayList<>();
+		queue = new LinkedList<>();
 		distribution = new ExponentialGen(dis, mu);
 		depart = new Departure();
 		systemObs = new Tally();
 		servTimeObservation = new Tally();
 		waitTimeObservation = new Tally();
-		simulator = sim;
-		depart.setSimulator(simulator);
 		
 	}
-	
 	public void report(double lambdaArrival)
 	{
 		double rho = lambdaArrival/mu;

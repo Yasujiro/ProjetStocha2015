@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.LinkedList;
+
 import umontreal.iro.lecuyer.randvar.RandomVariateGen;
 import umontreal.iro.lecuyer.simevents.Event;
 import umontreal.iro.lecuyer.simevents.Simulator;
@@ -7,7 +9,7 @@ import umontreal.iro.lecuyer.stat.Tally;
 
 public abstract class ServerStocha {
 
-	protected LinkedList<Customer> waitingList; 
+	protected LinkedList<Customer> queue; 
 	protected Customer currentCustomer;
 	protected Simulator simulator; 
 	protected RandomVariateGen distribution;
@@ -15,6 +17,7 @@ public abstract class ServerStocha {
 	protected Tally servTimeObservation;
 	protected Tally waitTimeObservation;
 	protected Departure depart;
+	protected ArrayList<QueueObserver> observer;
 	
 	/*
 	 * Arrivé d'un nouveau client dans le system.
@@ -32,13 +35,17 @@ public abstract class ServerStocha {
 		}
 		else
 		{
-			waitingList.addLast(cust);
+			queue.addLast(cust);
 		}
 		
 	}
 	//Planifie l'event de départ du client entrant "en service".
-	private void startOfService(Customer cust) {
+	protected void startOfService(Customer cust) {
 		currentCustomer = cust;
+		if(cust instanceof ChangingCust)
+		{
+			cust.waitingTime = (simulator.time()-cust.getArrivalTime());
+		}
 		waitTimeObservation.add(simulator.time()-cust.getArrivalTime());
 		depart.schedule(currentCustomer.getServTime());
 	}
@@ -49,9 +56,14 @@ public abstract class ServerStocha {
 		int nbPerso = customerInSystem();
 		systemObs.add(nbPerso);
 	}
-	
+
+	public void setSimu(Simulator sim)
+	{
+		simulator = sim;
+		depart.setSimulator(simulator);
+	}
 	//"Retire" le client du serveur et le retourne.
-	private Customer endOfService()
+	protected Customer endOfService()
 	{
 		Customer leavingC = currentCustomer;
 		currentCustomer = null;
@@ -64,7 +76,7 @@ public abstract class ServerStocha {
 	{
 		int customerInServ =0;
 		if(currentCustomer != null)
-			customerInServ = waitingList.size()+1;
+			customerInServ = queue.size()+1;
 		return customerInServ;
 	}
 	
@@ -82,13 +94,26 @@ public abstract class ServerStocha {
 	{
 		return waitTimeObservation.average();
 	}
-	
+	public LinkedList<Customer> getQueue()
+	{
+		return queue;
+	}
 	public void report(double lambdaArrival)
 	{
 //		System.out.println("Nombre moyen de personne dans la system "+avrgCustomerInSystem());
 //		System.out.println("Temps moyen dans le system "+avgTimeInSystem());
 		System.out.println("Temps moyen d'attente :"+avgTimeInQueue());
 		System.out.println("---Fin rapport serveur----\n");
+	}
+	
+	public void addObserver(QueueObserver obs)
+	{
+		observer.add(obs);
+	}
+	
+	public boolean isOpen()
+	{
+		return true;
 	}
 	
 	//Classe d'Event permettnt de gérer les départ des client.
@@ -105,12 +130,15 @@ public abstract class ServerStocha {
 			Customer leavingCust = endOfService();
 			servTimeObservation.add(simulator.time()-leavingCust.getArrivalTime());
 			
-			if(waitingList.size() >0)
+			if(queue.size() >0)
 			{
-				startOfService(waitingList.removeFirst());
+				startOfService(queue.removeFirst());
 				
 			}
-		}
-		
+			for(QueueObserver obs: observer)
+			{
+				obs.QueueReduced();
+			}
+		}		
 	}
 }

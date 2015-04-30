@@ -3,6 +3,7 @@ public class Customer {
 
 	private double servTime;
 	private double arrivalTime;
+	public double waitingTime;
 	
 	public Customer(double arrival)
 	{
