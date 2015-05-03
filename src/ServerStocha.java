@@ -45,6 +45,7 @@ public abstract class ServerStocha {
 		if(cust instanceof ChangingCust)
 		{
 			cust.waitingTime = (simulator.time()-cust.getArrivalTime());
+			((ChangingCust)cust).setCurrentServer(null);
 		}
 		waitTimeObservation.add(simulator.time()-cust.getArrivalTime());
 		depart.schedule(currentCustomer.getServTime());
@@ -116,6 +117,10 @@ public abstract class ServerStocha {
 		return true;
 	}
 	
+	public Customer getCurrentCustomer() {
+		return currentCustomer;
+	}
+
 	//Classe d'Event permettnt de gérer les départ des client.
 	class Departure extends Event{
 

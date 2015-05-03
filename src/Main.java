@@ -10,7 +10,7 @@ public class Main {
 	private static double lambda = 3.8;
 	private static int kErlang = 1;
 	private static int muK = 2;
-	private static int nombreSimulation = 20;
+	private static int nombreSimulation = 50;
 	private static int tempsSimu = 10000;
 	public static void main(String[] args) {		
 		
@@ -122,7 +122,7 @@ public class Main {
 					if(i%2==0)
 						servSystem[i] = new ServerPoisson(pStream,mu);
 					else
-						servSystem[i] = new ServerPoissonWithClose(pStream, mu, 50);
+						servSystem[i] = new ServerPoissonWithClose(pStream, mu, 10);
 					break;
 			}
 		}

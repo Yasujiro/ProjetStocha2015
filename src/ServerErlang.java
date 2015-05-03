@@ -3,7 +3,6 @@ import java.util.LinkedList;
 
 import umontreal.iro.lecuyer.randvar.ErlangGen;
 import umontreal.iro.lecuyer.rng.MRG32k3a;
-import umontreal.iro.lecuyer.simevents.Simulator;
 import umontreal.iro.lecuyer.stat.Tally;
 
 public class ServerErlang extends ServerStocha {
