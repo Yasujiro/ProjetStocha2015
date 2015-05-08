@@ -10,8 +10,8 @@ public class Main {
 	private static double lambda = 3;
 	private static int kErlang = 3;
 	private static double muK = 2*kErlang;
-	private static int nombreSimulation = 1;
-	private static int tempsSimu = 2000000;
+	private static int nombreSimulation = 100;
+	private static int tempsSimu = 10000;
 	public static void main(String[] args) {		
 		
 		
@@ -61,10 +61,8 @@ public class Main {
 
 			
 			system.LaunchSimu();
-			for(double obs:system.meanWaiTime().getArray())
-			{
-				waitTime.add(obs);
-			}
+			waitTime.add(system.meanWaitTime.average());
+			
 			if(system instanceof SecondSystem)
 				bobWaitTime.add(((SecondSystem)system).changingCustomerWaitTime());
 		}
