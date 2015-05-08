@@ -10,7 +10,7 @@ public class Main {
 	private static double lambda = 3;
 	private static int kErlang = 3;
 	private static double muK = 2*kErlang;
-	private static int nombreSimulation = 100;
+	private static int nombreSimulation = 10;
 	private static int tempsSimu = 10000;
 	public static void main(String[] args) {		
 		
