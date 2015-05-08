@@ -2,7 +2,7 @@ import umontreal.iro.lecuyer.randvar.ExponentialGen;
 import umontreal.iro.lecuyer.rng.MRG32k3a;
 import umontreal.iro.lecuyer.simevents.Event;
 import umontreal.iro.lecuyer.simevents.Simulator;
-import umontreal.iro.lecuyer.stat.Tally;
+import umontreal.iro.lecuyer.stat.TallyStore;
 
 
 
@@ -17,14 +17,14 @@ public class QueueSystem {
 	private ExponentialGen expGen;
 	protected double timeOfSim;
 	
-	protected Tally meanWaitTime; //Liste d'observation des temps moyen d'attente de chaque serveur.
+	protected TallyStore meanWaitTime; //Liste d'observation des temps d'attente.
 	
 	public QueueSystem(double lambda, double time, ServerStocha[] servs)
 	{
 		simulator = new Simulator(); //Instance de simulation, contient la liste des events, le scheduler.
 		this.lambda = lambda;
 		timeOfSim = time;	
-		meanWaitTime = new Tally();
+		meanWaitTime = new TallyStore();
 		arrival = new Arrival();
 		arrival.setSimulator(simulator);
 		initializeArrivalGen();
@@ -38,14 +38,7 @@ public class QueueSystem {
 	public void LaunchSimu() {
 		simulator.init();
 		scheduledEvents();
-		simulator.start();
-		Customer cust;
-		for(int i = 0;i<100;i++)
-		{
-			cust = new Customer(0);
-			servers[i%2].requestServer(cust);
-		}
-		
+		simulator.start();		
 	}
 
 	protected void scheduledEvents() {
@@ -69,9 +62,9 @@ public class QueueSystem {
 	{
 		return servers[i];
 	}
-	public double meanWaiTime()
+	public TallyStore meanWaiTime()
 	{
-		return meanWaitTime.average();
+		return meanWaitTime;
 	}
 	protected ServerStocha chooseServer() {
 		
@@ -86,7 +79,7 @@ public class QueueSystem {
 
 	class Arrival extends Event{
 		@Override
-		public void actions() {			
+		public void actions() {		
 			arrival.schedule(expGen.nextDouble());
 			Customer cust = new Customer(simulator.time());			
 			ServerStocha choosenServ = chooseServer();
@@ -98,9 +91,13 @@ public class QueueSystem {
 	class EndOfSim extends Event{
 		@Override
 		public void actions() {			
-			for(int i=0;i<servers.length;i++)
+			for(ServerStocha serv: servers)
 			{
-				meanWaitTime.add(servers[i].avgTimeInQueue());
+				double[] obs = serv.avgTimeInQueue().getArray();
+				for(double observation:obs)
+				{
+					meanWaitTime.add(observation);
+				}
 			}
 			simulator.stop();
 		}		

@@ -1,10 +1,9 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
-
 import umontreal.iro.lecuyer.randvar.RandomVariateGen;
 import umontreal.iro.lecuyer.simevents.Event;
 import umontreal.iro.lecuyer.simevents.Simulator;
-import umontreal.iro.lecuyer.stat.Tally;
+import umontreal.iro.lecuyer.stat.TallyStore;
 
 
 public abstract class ServerStocha {
@@ -13,9 +12,7 @@ public abstract class ServerStocha {
 	protected Customer currentCustomer;
 	protected Simulator simulator; 
 	protected RandomVariateGen distribution;
-	protected Tally systemObs;
-	protected Tally servTimeObservation;
-	protected Tally waitTimeObservation;
+	protected TallyStore waitTimeObservation;
 	protected Departure depart;
 	protected ArrayList<QueueObserver> observer;
 	
@@ -47,7 +44,7 @@ public abstract class ServerStocha {
 			cust.waitingTime = (simulator.time()-cust.getArrivalTime());
 			((ChangingCust)cust).setCurrentServer(null);
 		}
-		waitTimeObservation.add(simulator.time()-cust.getArrivalTime());
+			waitTimeObservation.add(simulator.time()-cust.getArrivalTime());
 		depart.schedule(currentCustomer.getServTime());
 	}
 	
@@ -55,7 +52,6 @@ public abstract class ServerStocha {
 	private void updateSystemObs() {
 		
 		int nbPerso = customerInSystem();
-		systemObs.add(nbPerso);
 	}
 
 	public void setSimu(Simulator sim)
@@ -80,20 +76,9 @@ public abstract class ServerStocha {
 			customerInServ = queue.size()+1;
 		return customerInServ;
 	}
-	
-	//Retourne la moyenne du nombre de client dans le système.
-	public double avrgCustomerInSystem()
-	{		
-		return systemObs.average();
-	}
-	//Retourne la moyenne du temps passé dans le system.
-	public double avgTimeInSystem()
+	public TallyStore avgTimeInQueue()
 	{
-		return servTimeObservation.average();
-	}
-	public double avgTimeInQueue()
-	{
-		return waitTimeObservation.average();
+		return waitTimeObservation;
 	}
 	public LinkedList<Customer> getQueue()
 	{
@@ -101,9 +86,7 @@ public abstract class ServerStocha {
 	}
 	public void report(double lambdaArrival)
 	{
-//		System.out.println("Nombre moyen de personne dans la system "+avrgCustomerInSystem());
-//		System.out.println("Temps moyen dans le system "+avgTimeInSystem());
-		System.out.println("Temps moyen d'attente :"+avgTimeInQueue());
+		System.out.println("Temps moyen d'attente :"+waitTimeObservation.report());
 		System.out.println("---Fin rapport serveur----\n");
 	}
 	
@@ -133,7 +116,6 @@ public abstract class ServerStocha {
 		public void actions() {			
 			
 			Customer leavingCust = endOfService();
-			servTimeObservation.add(simulator.time()-leavingCust.getArrivalTime());
 			
 			if(queue.size() >0)
 			{

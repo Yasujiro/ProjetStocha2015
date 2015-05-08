@@ -7,11 +7,11 @@ public class Main {
 	
 	private static MRG31k3p randomSeedGen = new MRG31k3p();
 	private static double mu = 2;
-	private static double lambda = 3.8;
-	private static int kErlang = 1;
-	private static int muK = 2;
-	private static int nombreSimulation = 50;
-	private static int tempsSimu = 10000;
+	private static double lambda = 3;
+	private static int kErlang = 3;
+	private static double muK = 2*kErlang;
+	private static int nombreSimulation = 1;
+	private static int tempsSimu = 2000000;
 	public static void main(String[] args) {		
 		
 		
@@ -25,23 +25,15 @@ public class Main {
 		 * Simulation partie 2
 		 * 
 		 */		
-		simulateSystem(4,2);
+		//simulateSystem(4,2);
 		
 
 	}
 	private static void simulateSystem(int numSystem,int numServers) 
 	{
 		ServerStocha[] servSystem = null;
-		Tally meanWaitTime = new Tally();
-		Tally meanCustInSystem = new Tally();
-		Tally[] meanCustByServer = new Tally[numServers];
-		Tally[] meanWaitByServer = new Tally[numServers];
+		Tally waitTime = new Tally("Temps d'attente");
 		Tally bobWaitTime = new Tally();
-		for(int i=0;i<meanCustByServer.length;i++)
-		{
-			meanCustByServer[i] = new Tally();
-			meanWaitByServer[i] = new Tally();
-		}
 		QueueSystem system = null;
 		
 		for(int i =0;i<nombreSimulation;i++)
@@ -69,32 +61,29 @@ public class Main {
 
 			
 			system.LaunchSimu();
-			meanWaitTime.add(system.meanWaiTime());
-			for(int j=0;j<meanCustByServer.length;j++)
+			for(double obs:system.meanWaiTime().getArray())
 			{
-				meanCustByServer[j].add(system.getServer(j).avrgCustomerInSystem());
-				meanCustInSystem.add(system.getServer(j).avrgCustomerInSystem());
-				meanWaitByServer[j].add(system.getServer(j).avgTimeInQueue());
+				waitTime.add(obs);
 			}
 			if(system instanceof SecondSystem)
 				bobWaitTime.add(((SecondSystem)system).changingCustomerWaitTime());
 		}
-		System.out.println("System "+numSystem+" avec "+numServers+" server(s) : \n\n");
+		
+		System.out.println("System "+numSystem+" avec "+numServers+" server(s) : \n");
 		System.out.println("Nombre de simulation : "+nombreSimulation+"\n");
-		System.out.println("Temps moyen d'attente: "+meanWaitTime.average()+"\n");
-		for(int i=0;i<meanWaitByServer.length;i++)
-		{
-			System.out.println("\t Serveur "+i+" : "+meanWaitByServer[i].average());
-		}
-		System.out.println("Nombre moyen de personne dans chaque serveurs : "+meanCustInSystem.average()+"\n");
-		for(int i=0;i<meanCustByServer.length;i++)
-		{
-			System.out.println("\t Serveur "+i+" : "+meanCustByServer[i].average());
-		}
-		System.out.println("Temps moyen d'attente "+meanWaitTime.formatCIStudent(0.95));
-		System.out.println("Nombre moyen de personne dans le système "+meanCustInSystem.formatCIStudent(0.95));
+		System.out.println("Temps moyen d'attente: "+waitTime.report(0.95,5)+"\n");
+		System.out.println(waitTime.formatCIStudent(0.95,5));
 		if(bobWaitTime.numberObs() >0)
 			System.out.println("Temps d'attente moyen de Bob : "+bobWaitTime.average());
+		//Vérification de l'intervalle calculé par SSJ => OK.
+//		double sd=0;
+//		for(double time:system.meanWaiTime().getArray())
+//		{
+//			sd+=(Math.pow((time- system.meanWaiTime().average()), 2));
+//		}		
+//		sd *= 1.0/(system.meanWaiTime().numberObs()-1);
+//		sd = 1.96*Math.sqrt((sd)/system.meanWaiTime().numberObs());
+//		System.out.println("Intervalle : ["+(system.meanWaiTime().average()-sd)+" ; "+(system.meanWaiTime().average()+sd)+"]\n");
 		System.out.println("-------------------------------------------------------\n");
 		
 	}
@@ -122,7 +111,7 @@ public class Main {
 					if(i%2==0)
 						servSystem[i] = new ServerPoisson(pStream,mu);
 					else
-						servSystem[i] = new ServerPoissonWithClose(pStream, mu, 10);
+						servSystem[i] = new ServerPoissonWithClose(pStream, mu, 3);
 					break;
 			}
 		}

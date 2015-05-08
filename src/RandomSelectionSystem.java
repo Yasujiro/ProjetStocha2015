@@ -3,7 +3,6 @@ public class RandomSelectionSystem extends QueueSystem {
 
 	public RandomSelectionSystem(double lambda, double time,ServerStocha[] serv) {
 		super(lambda, time,serv);
-		// TODO Auto-generated constructor stub
 	}
 	
 	protected ServerStocha chooseServer() {
