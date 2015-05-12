@@ -18,7 +18,7 @@ public class Main {
 		/*
 		 * Déterminer temps stationnaire
 		 */
-		SimulationTempsCroissant(1, 2, 500);
+		SimulationTempsCroissant(1, 2, 700);
 		
 		//simulateSystem(1,1);		
 		//simulateSystem(1,nbServeur,tempsSimu);
