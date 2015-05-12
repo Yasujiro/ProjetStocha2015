@@ -1,21 +1,19 @@
 import java.util.ArrayList;
 
-import umontreal.iro.lecuyer.simevents.Event;
-import umontreal.iro.lecuyer.simevents.Simulator;
 
 
 public class SecondSystem extends QueueSystem {
 
 	private ChangingCust chanCust;
-	public ChangingCustArrival chArrival;
+	private boolean bobAlreadyThere;
 	public SecondSystem(double lambda, double time,ServerStocha[] serv) {
 		super(lambda, time, serv);
 		for(ServerStocha serveur : serv)
 		{
 			if(serveur instanceof ServerPoissonWithClose)
 				((ServerPoissonWithClose)serveur).setObs(this);
-		}		
-		
+		}
+		bobAlreadyThere = false;
 	}
 	/*
 	 * Lorsqu'un serveur se ferme, dispatch tous les clients de sa file dans les files des autres serveurs.
@@ -37,7 +35,6 @@ public class SecondSystem extends QueueSystem {
 	@Override
 	public void scheduledEvents()
 	{
-		scheduleChCustArrival();
 		super.scheduledEvents();
 	}
 	public double changingCustomerWaitTime()
@@ -68,30 +65,27 @@ public class SecondSystem extends QueueSystem {
 		}
 		return choosenServ;
 	}
-	private void scheduleChCustArrival()
+	@Override
+	protected void manageNewCustomer()
 	{
-		//MRG31k3p randomGen = new MRG31k3p();
-		chArrival = new ChangingCustArrival(simulator);
-		chArrival.schedule(timeOfSim/2); //scheduled arrival in the 2nd part of the simulation.
-		
-	}
-	class ChangingCustArrival extends Event{
-
-		public ChangingCustArrival(Simulator simu) {
-			this.setSimulator(simu);
-		}
-		//Arrivé du client "Bob"
-		@Override
-		public void actions() {
-			
+		if(!bobAlreadyThere && simulator.time() >= timeOfSim/10)
+		{
+			bobAlreadyThere = true;
+			arrival.schedule(expGen.nextDouble());
 			chanCust = new ChangingCust(simulator.time(), servers);
 			for(ServerStocha serv:servers)
 			{
 				serv.addObserver(chanCust);
+				
+				
 			}
 			ServerStocha choosenServ = chooseServer();			
 			choosenServ.requestServer(chanCust);
 			chanCust.setCurrentServer(choosenServ);
+			
+		}
+		else{
+			super.manageNewCustomer();
 		}
 	}
 }

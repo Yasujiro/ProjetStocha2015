@@ -5,18 +5,23 @@ import umontreal.iro.lecuyer.stat.Tally;
 
 public class Main {
 	
-	private static MRG31k3p randomSeedGen = new MRG31k3p();
+	public static MRG31k3p randomSeedGen = new MRG31k3p();
 	private static double mu = 2;
+	private static int nbServeur = 2;
 	private static double lambda = 3;
-	private static int kErlang = 3;
+	private static int kErlang = 2;
 	private static double muK = 2*kErlang;
-	private static int nombreSimulation = 10;
-	private static int tempsSimu = 10000;
-	public static void main(String[] args) {		
+	private static int tempsSimu = 1000000;
+	public static void main(String[] args) 
+	{
 		
+		/*
+		 * Déterminer temps stationnaire
+		 */
+		SimulationTempsCroissant(1, 2, 500);
 		
-		//simulateSystem(1,1);
-		simulateSystem(1,2);
+		//simulateSystem(1,1);		
+		//simulateSystem(1,nbServeur,tempsSimu);
 		//simulateSystem(2,1);
 		//simulateSystem(2,2);
 		//simulateSystem(3,1);
@@ -29,50 +34,81 @@ public class Main {
 		
 
 	}
-	private static void simulateSystem(int numSystem,int numServers) 
+	private static void SimulationTempsCroissant(int numSystem, int nbServ, int tempsSimulation)
 	{
-		ServerStocha[] servSystem = null;
-		Tally waitTime = new Tally("Temps d'attente");
-		Tally bobWaitTime = new Tally();
+		ServerStocha[] servSystem = new ServerStocha[nbServ];
 		QueueSystem system = null;
 		
-		for(int i =0;i<nombreSimulation;i++)
+		for(int i = 1; i<= tempsSimulation;i+=10)
 		{
-				servSystem= new ServerStocha[numServers];
-				switch(numSystem)
-				{
-				case 2:
-					initializeServer(servSystem,TypeServeur.Erlang);
-					system = new QueueSystem(lambda, tempsSimu,servSystem);
-					break;
-				case 3:
-					initializeServer(servSystem,TypeServeur.Poisson);
-					system = new RandomSelectionSystem(lambda, tempsSimu,servSystem);
-					break;
-				case 4:
-					initializeServer(servSystem, TypeServeur.WithClose);
-					system= new SecondSystem(lambda, tempsSimu, servSystem);
-					break;
-				default:
-					initializeServer(servSystem,TypeServeur.Poisson);
-					system = new QueueSystem(lambda, tempsSimu,servSystem);
-					break;						
-				}
-
-			
+			switch(numSystem)
+			{
+			case 2:
+				initializeServer(servSystem,TypeServeur.Erlang,false);
+				system = new QueueSystem(lambda, i,servSystem);
+				break;
+			case 3:
+				initializeServer(servSystem,TypeServeur.Poisson,false);
+				system = new RandomSelectionSystem(lambda, i,servSystem);
+				break;
+			case 4:
+				initializeServer(servSystem, TypeServeur.WithClose,false);
+				system= new SecondSystem(lambda, i, servSystem);
+				break;
+			default:
+				initializeServer(servSystem,TypeServeur.Poisson,false);
+				system = new QueueSystem(lambda, i,servSystem);
+				break;						
+			}
 			system.LaunchSimu();
-			waitTime.add(system.meanWaitTime.average());
-			
-			if(system instanceof SecondSystem)
-				bobWaitTime.add(((SecondSystem)system).changingCustomerWaitTime());
+			System.out.println("Durée simulation " + i+"\n");
+			system.report();
+			System.out.println("---------------------------\n");
 		}
 		
+	}
+	private static void simulateSystem(int numSystem,int numServers,int tempsSimulation) 
+	{
+		ServerStocha[] servSystem = null;
+		Tally bobWaitTime = new Tally("Temps d'attente moyen du client 'changeant'");
+		QueueSystem system = null;
+		servSystem= new ServerStocha[numServers];
+		
+		switch(numSystem)
+		{
+		case 2:
+			initializeServer(servSystem,TypeServeur.Erlang,true);
+			system = new QueueSystem(lambda, tempsSimulation,servSystem);
+			break;
+		case 3:
+			initializeServer(servSystem,TypeServeur.Poisson,true);
+			system = new RandomSelectionSystem(lambda, tempsSimulation,servSystem);
+			break;
+		case 4:
+			initializeServer(servSystem, TypeServeur.WithClose,true);
+			system= new SecondSystem(lambda, tempsSimulation, servSystem);
+			break;
+		default:
+			initializeServer(servSystem,TypeServeur.Poisson,true);
+			system = new QueueSystem(lambda, tempsSimulation,servSystem);
+			break;						
+		}
+
+	
+	system.LaunchSimu();
+	
+	if(system instanceof SecondSystem)
+		bobWaitTime.add(((SecondSystem)system).changingCustomerWaitTime());
+
+		
 		System.out.println("System "+numSystem+" avec "+numServers+" server(s) : \n");
-		System.out.println("Nombre de simulation : "+nombreSimulation+"\n");
-		System.out.println("Temps moyen d'attente: "+waitTime.report(0.95,5)+"\n");
-		System.out.println(waitTime.formatCIStudent(0.95,5));
+		system.report();
+		
 		if(bobWaitTime.numberObs() >0)
-			System.out.println("Temps d'attente moyen de Bob : "+bobWaitTime.average());
+		{
+			System.out.println(bobWaitTime.report(0.95,5));
+			System.out.println(bobWaitTime.formatCIStudent(0.95,5));
+		}
 		//Vérification de l'intervalle calculé par SSJ => OK.
 //		double sd=0;
 //		for(double time:system.meanWaiTime().getArray())
@@ -86,14 +122,17 @@ public class Main {
 		
 	}
 	
-	private static void initializeServer(ServerStocha[] servSystem,TypeServeur typeServ)
+	private static void initializeServer(ServerStocha[] servSystem,TypeServeur typeServ,boolean randomSeed)
 	{
 		long[] seed = new long[6];	
 		for(int i =0;i<servSystem.length;i++)
 		{
 			for(int j =0 ; j<seed.length;j++)
 			{
-				seed[j] = randomSeedGen.nextInt(1, 429494444);
+				if(randomSeed)
+					seed[j] = randomSeedGen.nextInt(1, 429494444);
+				else
+					seed[j] = 12345*(i+1);
 			}			
 			MRG32k3a pStream = new MRG32k3a();
 			pStream.setSeed(seed);
@@ -109,7 +148,7 @@ public class Main {
 					if(i%2==0)
 						servSystem[i] = new ServerPoisson(pStream,mu);
 					else
-						servSystem[i] = new ServerPoissonWithClose(pStream, mu, 3);
+						servSystem[i] = new ServerPoissonWithClose(pStream, mu,15);
 					break;
 			}
 		}

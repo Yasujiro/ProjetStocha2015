@@ -2,6 +2,7 @@ import umontreal.iro.lecuyer.randvar.ExponentialGen;
 import umontreal.iro.lecuyer.rng.MRG32k3a;
 import umontreal.iro.lecuyer.simevents.Event;
 import umontreal.iro.lecuyer.simevents.Simulator;
+import umontreal.iro.lecuyer.stat.Tally;
 import umontreal.iro.lecuyer.stat.TallyStore;
 
 
@@ -13,18 +14,21 @@ public class QueueSystem {
 	protected ServerStocha[] servers;
 	private double lambda;
 	protected Simulator simulator;
-	private Arrival arrival;
-	private ExponentialGen expGen;
+	protected Arrival arrival;
+	protected ExponentialGen expGen;
 	protected double timeOfSim;
+	private Tally custoInQueue;
 	
-	protected TallyStore meanWaitTime; //Liste d'observation des temps d'attente.
+	protected Tally meanWaitTime; //Liste d'observation des temps d'attente.
+
 	
 	public QueueSystem(double lambda, double time, ServerStocha[] servs)
 	{
 		simulator = new Simulator(); //Instance de simulation, contient la liste des events, le scheduler.
 		this.lambda = lambda;
 		timeOfSim = time;	
-		meanWaitTime = new TallyStore();
+		meanWaitTime = new Tally("Temps d'attente moyen");
+		custoInQueue = new Tally();
 		arrival = new Arrival();
 		arrival.setSimulator(simulator);
 		initializeArrivalGen();
@@ -32,6 +36,7 @@ public class QueueSystem {
 		for(ServerStocha serv:servers)
 		{
 			serv.setSimu(simulator);
+			serv.setObs(this);
 		}
 	}
 
@@ -62,9 +67,21 @@ public class QueueSystem {
 	{
 		return servers[i];
 	}
-	public TallyStore meanWaiTime()
+	public void report()
 	{
-		return meanWaitTime;
+		if(meanWaitTime.numberObs()>0)
+			System.out.println(meanWaitTime.report(0.95,5)+"\n");
+		if(meanWaitTime.numberObs()>2)
+			System.out.println(meanWaitTime.formatCIStudent(0.95,5));
+		int i = 1;
+		double meanQueue=0;
+		for(ServerStocha serv: servers)
+		{
+			System.out.println("Nombre moyen de personne dans la file du serveur  : "+i+" "+serv.queueSizeObs.average());
+			meanQueue+=serv.queueSizeObs.average();
+			i++;
+		}
+		System.out.println("\nNombre moyen de personne dans les files " +meanQueue/2);
 	}
 	protected ServerStocha chooseServer() {
 		
@@ -77,28 +94,34 @@ public class QueueSystem {
 		return choosenServ;
 	}
 
+	public void addWaitTimeObs(double x)
+	{
+		meanWaitTime.add(x);
+	}
+	public void addQueueSizeObs(double x)
+	{
+		custoInQueue.add(x);
+	}
+	protected void manageNewCustomer() {
+		arrival.schedule(expGen.nextDouble());
+		Customer cust = new Customer(simulator.time());			
+		ServerStocha choosenServ = chooseServer();
+		choosenServ.requestServer(cust);
+	}
+
+	
+	
 	class Arrival extends Event{
 		@Override
 		public void actions() {		
-			arrival.schedule(expGen.nextDouble());
-			Customer cust = new Customer(simulator.time());			
-			ServerStocha choosenServ = chooseServer();
-			choosenServ.requestServer(cust);
+			manageNewCustomer();			
 		}	
 		
 	}
 	
 	class EndOfSim extends Event{
 		@Override
-		public void actions() {			
-			for(ServerStocha serv: servers)
-			{
-				double[] obs = serv.avgTimeInQueue().getArray();
-				for(double observation:obs)
-				{
-					meanWaitTime.add(observation);
-				}
-			}
+		public void actions() {	
 			simulator.stop();
 		}		
 	}

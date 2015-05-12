@@ -27,9 +27,9 @@ public class ServerPoissonWithClose extends ServerPoisson {
 	{
 		return serverOpen;
 	}
-	public void setObs(SecondSystem obs)
+	protected void setObs(QueueSystem obs)
 	{
-		this.obs = obs;
+		this.obs = (SecondSystem)obs;
 	}
 	public boolean isAccepChangingCust() {
 		return accepChangingCust&&serverOpen;
