@@ -8,20 +8,20 @@ public class Main {
 	public static MRG31k3p randomSeedGen = new MRG31k3p();
 	private static double mu = 2;
 	private static int nbServeur = 2;
-	private static double lambda = 3;
+	private static double lambda = 3.8;
 	private static int kErlang = 2;
 	private static double muK = 2*kErlang;
-	private static int tempsSimu = 1000000;
+	private static int tempsSimu = 8000000;
 	public static void main(String[] args) 
 	{
 		
 		/*
 		 * Déterminer temps stationnaire
 		 */
-		SimulationTempsCroissant(1, 2, 700);
+		//SimulationTempsCroissant(1, 2, tempsSimu);
 		
-		//simulateSystem(1,1);		
-		//simulateSystem(1,nbServeur,tempsSimu);
+		//simulateSystem(1,1,tempsSimu);		
+		simulateSystem(1,nbServeur,tempsSimu);
 		//simulateSystem(2,1);
 		//simulateSystem(2,2);
 		//simulateSystem(3,1);
@@ -39,7 +39,7 @@ public class Main {
 		ServerStocha[] servSystem = new ServerStocha[nbServ];
 		QueueSystem system = null;
 		
-		for(int i = 1; i<= tempsSimulation;i+=10)
+		for(int i = 0; i<= tempsSimulation;i+=(tempsSimulation/50))
 		{
 			switch(numSystem)
 			{

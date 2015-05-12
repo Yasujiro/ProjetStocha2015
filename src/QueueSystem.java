@@ -73,6 +73,10 @@ public class QueueSystem {
 			System.out.println(meanWaitTime.report(0.95,5)+"\n");
 		if(meanWaitTime.numberObs()>2)
 			System.out.println(meanWaitTime.formatCIStudent(0.95,5));
+		QueueReport();
+	}
+
+	protected void QueueReport() {
 		int i = 1;
 		double meanQueue=0;
 		for(ServerStocha serv: servers)
