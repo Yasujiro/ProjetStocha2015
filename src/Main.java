@@ -8,24 +8,22 @@ public class Main {
 	public static MRG31k3p randomSeedGen = new MRG31k3p();
 	private static double mu = 2;
 	private static int nbServeur = 2;
-	private static double lambda = 3.8;
+	private static double lambda = 3;
 	private static int kErlang = 2;
 	private static double muK = 2*kErlang;
-	private static int tempsSimu = 8000000;
+	private static int tempsSimu = 30000;
 	public static void main(String[] args) 
 	{
 		
 		/*
 		 * Déterminer temps stationnaire
 		 */
-		//SimulationTempsCroissant(1, 2, tempsSimu);
-		
 		//simulateSystem(1,1,tempsSimu);		
-		simulateSystem(1,nbServeur,tempsSimu);
+		//simulateSystem(1,nbServeur,tempsSimu);
 		//simulateSystem(2,1);
 		//simulateSystem(2,2);
 		//simulateSystem(3,1);
-		//simulateSystem(3,2);
+		simulateSystem(3,nbServeur,tempsSimu);
 		/*
 		 * Simulation partie 2
 		 * 
@@ -34,39 +32,7 @@ public class Main {
 		
 
 	}
-	private static void SimulationTempsCroissant(int numSystem, int nbServ, int tempsSimulation)
-	{
-		ServerStocha[] servSystem = new ServerStocha[nbServ];
-		QueueSystem system = null;
-		
-		for(int i = 0; i<= tempsSimulation;i+=(tempsSimulation/50))
-		{
-			switch(numSystem)
-			{
-			case 2:
-				initializeServer(servSystem,TypeServeur.Erlang,false);
-				system = new QueueSystem(lambda, i,servSystem);
-				break;
-			case 3:
-				initializeServer(servSystem,TypeServeur.Poisson,false);
-				system = new RandomSelectionSystem(lambda, i,servSystem);
-				break;
-			case 4:
-				initializeServer(servSystem, TypeServeur.WithClose,false);
-				system= new SecondSystem(lambda, i, servSystem);
-				break;
-			default:
-				initializeServer(servSystem,TypeServeur.Poisson,false);
-				system = new QueueSystem(lambda, i,servSystem);
-				break;						
-			}
-			system.LaunchSimu();
-			System.out.println("Durée simulation " + i+"\n");
-			system.report();
-			System.out.println("---------------------------\n");
-		}
-		
-	}
+	
 	private static void simulateSystem(int numSystem,int numServers,int tempsSimulation) 
 	{
 		ServerStocha[] servSystem = null;
@@ -106,8 +72,8 @@ public class Main {
 		
 		if(bobWaitTime.numberObs() >0)
 		{
-			System.out.println(bobWaitTime.report(0.95,5));
-			System.out.println(bobWaitTime.formatCIStudent(0.95,5));
+			System.out.println(bobWaitTime.report());
+			System.out.println(bobWaitTime.formatCIStudent(0.95,3));
 		}
 		//Vérification de l'intervalle calculé par SSJ => OK.
 //		double sd=0;

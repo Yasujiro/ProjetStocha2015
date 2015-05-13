@@ -18,7 +18,7 @@ public class QueueSystem {
 	protected ExponentialGen expGen;
 	protected double timeOfSim;
 	private Tally custoInQueue;
-	
+	private Test ob;
 	protected Tally meanWaitTime; //Liste d'observation des temps d'attente.
 
 	
@@ -30,6 +30,7 @@ public class QueueSystem {
 		meanWaitTime = new Tally("Temps d'attente moyen");
 		custoInQueue = new Tally();
 		arrival = new Arrival();
+		ob = new Test(simulator);
 		arrival.setSimulator(simulator);
 		initializeArrivalGen();
 		servers = servs;
@@ -50,6 +51,7 @@ public class QueueSystem {
 		arrival.schedule(expGen.nextDouble());//Programme l'event pour le temps t =simulator.time+X (X étant généré)
 		EndOfSim endofSimEvent = new EndOfSim();
 		endofSimEvent.setSimulator(simulator);
+		ob.schedule(500);
 		endofSimEvent.schedule(timeOfSim); //Programme l'event pour le temps t =simulator.time+timeOfSim
 	}
 	private void initializeArrivalGen() {
@@ -70,9 +72,9 @@ public class QueueSystem {
 	public void report()
 	{
 		if(meanWaitTime.numberObs()>0)
-			System.out.println(meanWaitTime.report(0.95,5)+"\n");
+			System.out.println(meanWaitTime.report()+"\n");
 		if(meanWaitTime.numberObs()>2)
-			System.out.println(meanWaitTime.formatCIStudent(0.95,5));
+			System.out.println(meanWaitTime.formatCIStudent(0.95,3));
 		QueueReport();
 	}
 
@@ -90,10 +92,20 @@ public class QueueSystem {
 	protected ServerStocha chooseServer() {
 		
 		ServerStocha choosenServ = servers[0];
-		for(int i=1;i<servers.length && (choosenServ.customerInSystem()>0);i++)
+		for(int i=1;i<servers.length;i++)
 		{
-			if(servers[i].isOpen() && servers[i].customerInSystem()<choosenServ.customerInSystem())
-				choosenServ = servers[i];
+			if(servers[i].isOpen())
+			{
+				if(servers[i].customerInSystem()<choosenServ.customerInSystem())
+					choosenServ = servers[i];
+				else if (servers[i].customerInSystem()==choosenServ.customerInSystem()) // Si taille égal, choix random.
+				{
+					double rand = Math.random();
+					if(rand>0.5)
+						choosenServ = servers[i];
+				}
+			}
+			
 		}
 		return choosenServ;
 	}
@@ -128,6 +140,18 @@ public class QueueSystem {
 		public void actions() {	
 			simulator.stop();
 		}		
+	}
+	
+	class Test extends Event{
+		public Test(Simulator sim)
+		{
+			this.setSimulator(sim);
+		}
+		public void actions(){
+			System.out.println("Temps : "+sim.time());
+			System.out.println(meanWaitTime.report());
+			ob.schedule(500);
+		}
 	}
 
 	
