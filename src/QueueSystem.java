@@ -18,7 +18,7 @@ public class QueueSystem {
 	protected ExponentialGen expGen;
 	protected double timeOfSim;
 	private Tally custoInQueue;
-	private Test ob;
+	private StatsObserver ob;
 	protected Tally meanWaitTime; //Liste d'observation des temps d'attente.
 
 	
@@ -30,7 +30,7 @@ public class QueueSystem {
 		meanWaitTime = new Tally("Temps d'attente moyen");
 		custoInQueue = new Tally();
 		arrival = new Arrival();
-		ob = new Test(simulator);
+		ob = new StatsObserver(simulator);
 		arrival.setSimulator(simulator);
 		initializeArrivalGen();
 		servers = servs;
@@ -72,9 +72,10 @@ public class QueueSystem {
 	public void report()
 	{
 		if(meanWaitTime.numberObs()>0)
+		{
 			System.out.println(meanWaitTime.report()+"\n");
-		if(meanWaitTime.numberObs()>2)
-			System.out.println(meanWaitTime.formatCIStudent(0.95,3));
+			System.out.println("Variance : "+meanWaitTime.variance()+"\n");
+		}
 		QueueReport();
 	}
 
@@ -83,7 +84,7 @@ public class QueueSystem {
 		double meanQueue=0;
 		for(ServerStocha serv: servers)
 		{
-			System.out.println("Nombre moyen de personne dans la file du serveur  : "+i+" "+serv.queueSizeObs.average());
+			System.out.println("Nombre moyen de personne dans la file du serveur  : "+i+" "+serv.queueSizeObs.report());
 			meanQueue+=serv.queueSizeObs.average();
 			i++;
 		}
@@ -142,14 +143,15 @@ public class QueueSystem {
 		}		
 	}
 	
-	class Test extends Event{
-		public Test(Simulator sim)
+	class StatsObserver extends Event{
+		public StatsObserver(Simulator sim)
 		{
 			this.setSimulator(sim);
 		}
 		public void actions(){
-			System.out.println("Temps : "+sim.time());
+			System.out.println("-------------------------Temps : "+sim.time()+"-----------------------------");
 			System.out.println(meanWaitTime.report());
+			System.out.println("Variance : "+meanWaitTime.variance());
 			ob.schedule(500);
 		}
 	}

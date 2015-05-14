@@ -9,7 +9,6 @@ public class ServerPoissonWithClose extends ServerPoisson {
 	private boolean serverOpen;
 	private boolean accepChangingCust;
 	private int custToClose; //Nombre de personne avant de fermer.
-	private SecondSystem obs;
 	private static MRG31k3p randomGen = new MRG31k3p();
 	private ExponentialGen closeTimeGen;
 	private boolean seuilFranchi;
@@ -58,7 +57,8 @@ public class ServerPoissonWithClose extends ServerPoisson {
 			AcceptNewChangingCust acpt = new AcceptNewChangingCust();
 			acpt.setSimulator(simulator);
 			acpt.schedule(closeTimeGen.nextDouble());
-			obs.serverClosed(this);	
+			((SecondSystem)obs).serverClosed(this);
+			//System.out.println("\n########## Fermeture"+simulator.time()+"########################\n");
 			
 		}
 		return leavingCust;
@@ -69,6 +69,7 @@ public class ServerPoissonWithClose extends ServerPoisson {
 		/*Méthode invoqué lors que l'évent survient.
 		*/
 		public void actions() {
+			//System.out.println("\n########## Overture"+simulator.time()+"########################\n");
 			serverOpen = true;
 		}
 		

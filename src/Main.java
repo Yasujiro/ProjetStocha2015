@@ -8,9 +8,9 @@ public class Main {
 	public static MRG31k3p randomSeedGen = new MRG31k3p();
 	private static double mu = 2;
 	private static int nbServeur = 2;
-	private static double lambda = 3;
-	private static int kErlang = 2;
-	private static double muK = 2*kErlang;
+	private static double lambda = 3.8;
+	private static int kErlang = 5;
+	private static double muK = mu*kErlang;
 	private static int tempsSimu = 30000;
 	public static void main(String[] args) 
 	{
@@ -21,14 +21,14 @@ public class Main {
 		//simulateSystem(1,1,tempsSimu);		
 		//simulateSystem(1,nbServeur,tempsSimu);
 		//simulateSystem(2,1);
-		//simulateSystem(2,2);
+		//simulateSystem(2,nbServeur,tempsSimu);
 		//simulateSystem(3,1);
-		simulateSystem(3,nbServeur,tempsSimu);
+		//simulateSystem(3,nbServeur,tempsSimu);
 		/*
 		 * Simulation partie 2
 		 * 
 		 */		
-		//simulateSystem(4,2);
+		simulateSystem(4,nbServeur,tempsSimu);
 		
 
 	}
@@ -63,27 +63,17 @@ public class Main {
 	
 	system.LaunchSimu();
 	
-	if(system instanceof SecondSystem)
-		bobWaitTime.add(((SecondSystem)system).changingCustomerWaitTime());
+//	if(system instanceof SecondSystem)
+//		bobWaitTime.add(((SecondSystem)system).changingCustomerWaitTime());
 
-		
+		System.out.println("\n---------------------Résultat final-----------------------");
 		System.out.println("System "+numSystem+" avec "+numServers+" server(s) : \n");
 		system.report();
 		
 		if(bobWaitTime.numberObs() >0)
 		{
 			System.out.println(bobWaitTime.report());
-			System.out.println(bobWaitTime.formatCIStudent(0.95,3));
 		}
-		//Vérification de l'intervalle calculé par SSJ => OK.
-//		double sd=0;
-//		for(double time:system.meanWaiTime().getArray())
-//		{
-//			sd+=(Math.pow((time- system.meanWaiTime().average()), 2));
-//		}		
-//		sd *= 1.0/(system.meanWaiTime().numberObs()-1);
-//		sd = 1.96*Math.sqrt((sd)/system.meanWaiTime().numberObs());
-//		System.out.println("Intervalle : ["+(system.meanWaiTime().average()-sd)+" ; "+(system.meanWaiTime().average()+sd)+"]\n");
 		System.out.println("-------------------------------------------------------\n");
 		
 	}
@@ -114,7 +104,7 @@ public class Main {
 					if(i%2==0)
 						servSystem[i] = new ServerPoisson(pStream,mu);
 					else
-						servSystem[i] = new ServerPoissonWithClose(pStream, mu,15);
+						servSystem[i] = new ServerPoissonWithClose(pStream, mu,6);
 					break;
 			}
 		}
