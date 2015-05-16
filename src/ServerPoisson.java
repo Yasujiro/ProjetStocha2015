@@ -13,12 +13,10 @@ public class ServerPoisson extends ServerStocha {
 	
 	public ServerPoisson(MRG32k3a dis,double mu)
 	{
-		observer = new ArrayList<>();
 		queue = new LinkedList<>();
 		distribution = new ExponentialGen(dis, mu);
 		depart = new Departure();
-		queueSizeObs = new Tally();
-		
+		queueSizeObs = new Tally();		
 	}
 
 }

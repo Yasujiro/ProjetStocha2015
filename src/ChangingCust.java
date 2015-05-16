@@ -4,7 +4,7 @@ public class ChangingCust extends Customer implements QueueObserver {
 
 	private ServerStocha[] serverList;
 	private ServerStocha currentServer;
-	private int sizeDiff =3 ;
+	private int sizeDiff =1;
 	public ChangingCust(double arrival,ServerStocha[] servers) {
 		super(arrival);
 		serverList =servers;
@@ -24,8 +24,7 @@ public class ChangingCust extends Customer implements QueueObserver {
 		{
 			if(serv!=currentServer)
 			{
-				if(serv.isOpen()
-						||(serv instanceof ServerPoissonWithClose && ((ServerPoissonWithClose)serv).isAccepChangingCust()))
+				if(!(serv instanceof ServerPoissonWithClose) || ((ServerPoissonWithClose)serv).isAccepChangingCust())
 				{
 					if(serv.getQueue().size() < currentServer.getQueue().indexOf(this) - sizeDiff )
 					{

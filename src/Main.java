@@ -9,15 +9,12 @@ public class Main {
 	private static double mu = 2;
 	private static int nbServeur = 2;
 	private static double lambda = 3.8;
-	private static int kErlang = 5;
+	private static int kErlang = 1;
 	private static double muK = mu*kErlang;
-	private static int tempsSimu = 30000;
+	private static int tempsSimu = 60000;
 	public static void main(String[] args) 
 	{
 		
-		/*
-		 * Déterminer temps stationnaire
-		 */
 		//simulateSystem(1,1,tempsSimu);		
 		//simulateSystem(1,nbServeur,tempsSimu);
 		//simulateSystem(2,1);
@@ -70,10 +67,8 @@ public class Main {
 		System.out.println("System "+numSystem+" avec "+numServers+" server(s) : \n");
 		system.report();
 		
-		if(bobWaitTime.numberObs() >0)
-		{
-			System.out.println(bobWaitTime.report());
-		}
+		if(system instanceof SecondSystem)
+			((SecondSystem)system).bobReport();
 		System.out.println("-------------------------------------------------------\n");
 		
 	}
@@ -104,7 +99,7 @@ public class Main {
 					if(i%2==0)
 						servSystem[i] = new ServerPoisson(pStream,mu);
 					else
-						servSystem[i] = new ServerPoissonWithClose(pStream, mu,6);
+						servSystem[i] = new ServerPoissonWithClose(pStream, mu,10);
 					break;
 			}
 		}

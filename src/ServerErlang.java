@@ -10,7 +10,6 @@ public class ServerErlang extends ServerStocha {
 
 	public ServerErlang(MRG32k3a dis,int k,double muK)
 	{
-		observer = new ArrayList<>();
 		queue = new LinkedList<>();
 		distribution = new ErlangGen(dis,k, muK);
 		depart = new Departure();

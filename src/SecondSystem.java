@@ -1,21 +1,19 @@
 import java.util.ArrayList;
 
+import umontreal.iro.lecuyer.stat.Tally;
+
 
 
 public class SecondSystem extends QueueSystem {
 
-	private ChangingCust chanCust;
+	private Tally bobTimeObs;
 	private int nbFermeture;
 	private boolean bobAlreadyThere;
 	public SecondSystem(double lambda, double time,ServerStocha[] serv) {
 		super(lambda, time, serv);
-//		for(ServerStocha serveur : serv)
-//		{
-//			if(serveur instanceof ServerPoissonWithClose)
-//				((ServerPoissonWithClose)serveur).setObs(this);
-//		}
-		bobAlreadyThere = true;
+		bobAlreadyThere = false;
 		nbFermeture = 0;
+		bobTimeObs = new Tally("Temps d'attente moyen de Bob");
 	}
 	/*
 	 * Lorsqu'un serveur se ferme, dispatch tous les clients de sa file dans les files des autres serveurs.
@@ -36,13 +34,24 @@ public class SecondSystem extends QueueSystem {
 		}
 	}
 	@Override
+	public void addWaitTimeObs(Customer cust)
+	{
+		double x = simulator.time()-cust.getArrivalTime();
+		if(cust instanceof ChangingCust)
+		{
+			bobTimeObs.add(x);
+		}
+		else
+			meanWaitTime.add(x);
+	}
+	@Override
 	public void scheduledEvents()
 	{
 		super.scheduledEvents();
 	}
-	public double changingCustomerWaitTime()
+	public void bobReport()
 	{
-		return chanCust.waitingTime;
+		System.out.println(bobTimeObs.report());
 	}
 	@Override
 	public void report()
@@ -50,46 +59,72 @@ public class SecondSystem extends QueueSystem {
 		super.report();
 		System.out.println("Nombre de fermeture de serveur : "+nbFermeture+"\n");
 	}
+	@Override
+	public void custoLeaving(Customer cust)
+	{
+		if(cust instanceof ChangingCust)
+		{
+			bobAlreadyThere = false;
+			for(ServerStocha serv:servers)
+			{
+				serv.setQueueSizeObserver(null);				
+				
+			}
+		}
+	}
 	/*
 	 * Sélectionne le serveur où envoyer le client.
 	 * Choisit le serveur ouvert du système avec le moins de personne dedans.
 	 * @see QueueSystem#chooseServer()
 	 */
-	protected ServerStocha chooseServer() {
-//		ArrayList<ServerStocha> openedServ = new ArrayList<>();
-//		
-//		for(ServerStocha serv : servers)
-//		{
-//			if(serv.isOpen())
-//				openedServ.add(serv);
-//		}
-//		ServerStocha choosenServ = openedServ.get(0);
-//		for(int i=1;i<servers.length && (choosenServ.customerInSystem()>0);i++)
-//		{
-//			if(servers[i].isOpen() && servers[i].customerInSystem()<choosenServ.customerInSystem())
-//			{
-//				choosenServ = servers[i];
-//			}
-//		}
-		return super.chooseServer();
+	protected void chooseServer(Customer cust) {
+		if(cust instanceof ChangingCust)
+		{
+			ArrayList<ServerStocha> servList = new ArrayList<>();			
+			for(ServerStocha serv : servers)
+			{
+				if(serv instanceof ServerPoissonWithClose)
+				{
+					if(((ServerPoissonWithClose)serv).isAccepChangingCust())
+						servList.add(serv);
+				}
+				else
+					servList.add(serv);
+			}
+			ServerStocha choosenServ = servList.get(0);
+			for(int i=1;i<servList.size() && (choosenServ.customerInSystem()>0);i++)
+			{
+				if(servList.get(i).isOpen() && servList.get(i).customerInSystem()<choosenServ.customerInSystem())
+				{
+					choosenServ = servList.get(i);
+				}
+				else if (servList.get(i).customerInSystem()==choosenServ.customerInSystem()) // Si taille égal, choix random.
+				{
+					double rand = Math.random();
+					if(rand>0.5)
+						choosenServ = servList.get(i);
+				}
+			}
+			choosenServ.requestServer(cust);
+			((ChangingCust)cust).setCurrentServer(choosenServ);
+		}
+		else
+			super.chooseServer(cust);
 	}
 	@Override
 	protected void manageNewCustomer()
 	{
-		if(!bobAlreadyThere && simulator.time() >= timeOfSim/10)
+		if(!bobAlreadyThere && simulator.time() >= 20000)
 		{
 			bobAlreadyThere = true;
 			arrival.schedule(expGen.nextDouble());
-			chanCust = new ChangingCust(simulator.time(), servers);
+			ChangingCust chanCust = new ChangingCust(simulator.time(), servers);
 			for(ServerStocha serv:servers)
 			{
-				serv.addObserver(chanCust);
-				
+				serv.setQueueSizeObserver(chanCust);				
 				
 			}
-			ServerStocha choosenServ = chooseServer();			
-			choosenServ.requestServer(chanCust);
-			chanCust.setCurrentServer(choosenServ);
+			chooseServer(chanCust);
 			
 		}
 		else{

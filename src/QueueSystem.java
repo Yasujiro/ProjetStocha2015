@@ -69,6 +69,13 @@ public class QueueSystem {
 	{
 		return servers[i];
 	}
+	public void custoLeaving(Customer cust)
+	{
+		/*
+		 * Used this methode for any update to make when customer leave the system.
+		 */
+		return;
+	}
 	public void report()
 	{
 		if(meanWaitTime.numberObs()>0)
@@ -90,7 +97,7 @@ public class QueueSystem {
 		}
 		System.out.println("\nNombre moyen de personne dans les files " +meanQueue/2);
 	}
-	protected ServerStocha chooseServer() {
+	protected void chooseServer(Customer cust) {
 		
 		ServerStocha choosenServ = servers[0];
 		for(int i=1;i<servers.length;i++)
@@ -108,11 +115,12 @@ public class QueueSystem {
 			}
 			
 		}
-		return choosenServ;
+		choosenServ.requestServer(cust);
 	}
-
-	public void addWaitTimeObs(double x)
+		
+	public void addWaitTimeObs(Customer cust)
 	{
+		double x = simulator.time()-cust.getArrivalTime();
 		meanWaitTime.add(x);
 	}
 	public void addQueueSizeObs(double x)
@@ -122,8 +130,8 @@ public class QueueSystem {
 	protected void manageNewCustomer() {
 		arrival.schedule(expGen.nextDouble());
 		Customer cust = new Customer(simulator.time());			
-		ServerStocha choosenServ = chooseServer();
-		choosenServ.requestServer(cust);
+		chooseServer(cust);
+		
 	}
 
 	
@@ -149,10 +157,10 @@ public class QueueSystem {
 			this.setSimulator(sim);
 		}
 		public void actions(){
-			System.out.println("-------------------------Temps : "+sim.time()+"-----------------------------");
-			System.out.println(meanWaitTime.report());
-			System.out.println("Variance : "+meanWaitTime.variance());
-			ob.schedule(500);
+//			System.out.println("-------------------------Temps : "+sim.time()+"-----------------------------");
+//			System.out.println(meanWaitTime.report());
+//			System.out.println("Variance : "+meanWaitTime.variance());
+//			ob.schedule(500);
 		}
 	}
 

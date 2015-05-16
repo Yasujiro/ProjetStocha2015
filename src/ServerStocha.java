@@ -16,7 +16,7 @@ public abstract class ServerStocha {
 	protected Simulator simulator; 
 	protected RandomVariateGen distribution;
 	protected Departure depart;
-	protected ArrayList<QueueObserver> observer;
+	protected QueueObserver queueSizeObserver;
 	protected Tally queueSizeObs;
 	
 	/*
@@ -47,7 +47,7 @@ public abstract class ServerStocha {
 			cust.waitingTime = (simulator.time()-cust.getArrivalTime());
 			((ChangingCust)cust).setCurrentServer(null);
 		}
-		obs.addWaitTimeObs(simulator.time()-cust.getArrivalTime());
+		obs.addWaitTimeObs(cust);
 		depart.schedule(currentCustomer.getServTime());
 	}
 	protected void setObs(QueueSystem obs)
@@ -82,28 +82,19 @@ public abstract class ServerStocha {
 			customerInServ = queue.size()+1;
 		return customerInServ;
 	}
-//	public TallyStore avgTimeInQueue()
-//	{
-//		return waitTimeObservation;
-//	}
 	public LinkedList<Customer> getQueue()
 	{
 		return queue;
 	}
-	public void report(double lambdaArrival)
-	{
-//		System.out.println("Temps moyen d'attente :"+waitTimeObservation.report());
-//		System.out.println("---Fin rapport serveur----\n");
-	}
 	
-	public void addObserver(QueueObserver obs)
+	public void setQueueSizeObserver(QueueObserver obs)
 	{
-		observer.add(obs);
+		queueSizeObserver = obs;
 	}
 	
 	public boolean isOpen()
 	{
-		return true;
+		return true;		
 	}
 	
 	public Customer getCurrentCustomer() {
@@ -120,16 +111,15 @@ public abstract class ServerStocha {
 		 * Si des client sont présent dans la file, le premier de la file commence son service et est retiré de la file.
 		*/
 		public void actions() {	
-			endOfService();
+			
+			obs.custoLeaving(endOfService());
 			if(queue.size() >0)
 			{
 				startOfService(queue.removeFirst());
 				
 			}
-			for(QueueObserver obs: observer)
-			{
-				obs.QueueReduced();
-			}
+			if(queueSizeObserver != null)
+				queueSizeObserver.QueueReduced();
 		}		
 	}
 }
