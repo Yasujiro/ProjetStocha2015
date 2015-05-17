@@ -83,7 +83,7 @@ public class QueueSystem {
 			System.out.println(meanWaitTime.report()+"\n");
 			System.out.println("Variance : "+meanWaitTime.variance()+"\n");
 		}
-		QueueReport();
+		//QueueReport();
 	}
 
 	protected void QueueReport() {
