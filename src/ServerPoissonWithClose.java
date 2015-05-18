@@ -21,7 +21,6 @@ public class ServerPoissonWithClose extends ServerPoisson {
 		accepChangingCust = false;
 		seuilFranchi = false;
 		this.custToClose = custToClose;
-		acpt = new AcceptNewChangingCust();
 	}
 	
 	@Override
@@ -33,7 +32,6 @@ public class ServerPoissonWithClose extends ServerPoisson {
 	public void setSimu(Simulator sim)
 	{
 		super.setSimu(sim);
-		acpt.setSimulator(sim);
 	}
 	protected void setObs(QueueSystem obs)
 	{
@@ -75,17 +73,22 @@ public class ServerPoissonWithClose extends ServerPoisson {
 		*/
 		public void actions() {
 			serverOpen = true;
+			acpt = new AcceptNewChangingCust(simulator);
 			acpt.schedule(closeTimeGen.nextDouble());
 		}
 		
 	}
 	class AcceptNewChangingCust extends Event{
 
+		public AcceptNewChangingCust(Simulator sim) {
+			setSimulator(sim);
+		}
 		@Override
 		/*Méthode invoqué lors que l'évent survient.
 		*/
 		public void actions() {	
-			accepChangingCust=true;
+			if(serverOpen)
+				accepChangingCust=true;
 		}
 		
 	}

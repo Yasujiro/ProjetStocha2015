@@ -64,7 +64,7 @@ public class SecondSystem extends QueueSystem {
 		if(cust instanceof ChangingCust)
 		{
 			accBob = new AcceptBob(simulator);
-			accBob.schedule(50);
+			accBob.schedule(500*Math.random());
 			for(ServerStocha serv:servers)
 			{
 				serv.setQueueSizeObserver(null);				
