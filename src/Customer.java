@@ -1,7 +1,7 @@
 
 public class Customer {
 
-	private double servTime;
+	private double serviceTime;
 	private double arrivalTime;
 	public double waitingTime;
 	
@@ -10,17 +10,17 @@ public class Customer {
 		arrivalTime = arrival;
 	}
 	
-	public double getServTime()
+	public double getServiceTime()
 	{
-		return servTime;
+		return serviceTime;
 	}
 	public double getArrivalTime()
 	{
 		return arrivalTime;
 	}
-	public void setServTime(double t)
+	public void setServiceTime(double t)
 	{
-		servTime = t;
+		serviceTime = t;
 	}
 	public void setArrivaltime(double t)
 	{

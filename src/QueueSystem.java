@@ -3,45 +3,40 @@ import umontreal.iro.lecuyer.rng.MRG32k3a;
 import umontreal.iro.lecuyer.simevents.Event;
 import umontreal.iro.lecuyer.simevents.Simulator;
 import umontreal.iro.lecuyer.stat.Tally;
-import umontreal.iro.lecuyer.stat.TallyStore;
-
-
 
 
 public class QueueSystem {
-	
-	
-	protected ServerStocha[] servers;
+	protected StochasticServer[] servers;
 	private double lambda;
 	protected Simulator simulator;
 	protected Arrival arrival;
 	protected ExponentialGen expGen;
-	protected double timeOfSim;
-	private Tally custoInQueue;
+	protected double simulationTime;
+	private Tally queueSizeObservations;
 	//private StatsObserver ob;
-	protected Tally meanWaitTime; //Liste d'observation des temps d'attente.
+	protected Tally meanWaitTimeObservations; //Liste d'observation des temps d'attente.
 
 	
-	public QueueSystem(double lambda, double time, ServerStocha[] servs)
+	public QueueSystem(double lambda, double time, StochasticServer[] servers)
 	{
-		simulator = new Simulator(); //Instance de simulation, contient la liste des events, le scheduler.
+		this.simulator = new Simulator(); //Instance de simulation, contient la liste des events, le scheduler.
 		this.lambda = lambda;
-		timeOfSim = time;	
-		meanWaitTime = new Tally("Temps d'attente moyen");
-		custoInQueue = new Tally();
-		arrival = new Arrival();
+		this.simulationTime = time;	
+		this.meanWaitTimeObservations = new Tally("Temps d'attente moyen");
+		this.queueSizeObservations = new Tally();
+		this.arrival = new Arrival();
 		//ob = new StatsObserver(simulator);
-		arrival.setSimulator(simulator);
+		this.arrival.setSimulator(simulator);
 		initializeArrivalGen();
-		servers = servs;
-		for(ServerStocha serv:servers)
+		this.servers = servers;
+		for(StochasticServer server:this.servers)
 		{
-			serv.setSimu(simulator);
-			serv.setObs(this);
+			server.setSimulator(simulator);
+			server.setSystem(this);
 		}
 	}
 
-	public void LaunchSimu() {
+	public void startSimulation() {
 		simulator.init();
 		scheduleEvents();
 		simulator.start();		
@@ -52,7 +47,7 @@ public class QueueSystem {
 		EndOfSim endofSimEvent = new EndOfSim();
 		endofSimEvent.setSimulator(simulator);
 		//ob.schedule(500);
-		endofSimEvent.schedule(timeOfSim); //Programme l'event pour le temps t =simulator.time+timeOfSim
+		endofSimEvent.schedule(simulationTime); //Programme l'event pour le temps t =simulator.time+timeOfSim
 	}
 	private void initializeArrivalGen() {
 		long[] seed = new long[6];
@@ -65,11 +60,11 @@ public class QueueSystem {
 		expGen = new ExponentialGen(expStream, lambda);
 		
 	}
-	public ServerStocha getServer(int i)
+	public StochasticServer getServer(int i)
 	{
 		return servers[i];
 	}
-	public void custoLeaving(Customer cust)
+	public void customerLeaving(Customer cust)
 	{
 		/*
 		 * Used this methode for any update to make when customer leave the system.
@@ -78,35 +73,35 @@ public class QueueSystem {
 	}
 	public void report()
 	{
-		if(meanWaitTime.numberObs()>0)
+		if(meanWaitTimeObservations.numberObs()>0)
 		{
-			System.out.println(meanWaitTime.report()+"\n");
-			System.out.println("Variance : "+meanWaitTime.variance()+"\n");
+			System.out.println(meanWaitTimeObservations.report()+"\n");
+			System.out.println("Variance : "+meanWaitTimeObservations.variance()+"\n");
 		}
 		//QueueReport();
 	}
 
-	protected void QueueReport() {
+	protected void queueReport() {
 		int i = 1;
 		double meanQueue=0;
-		for(ServerStocha serv: servers)
+		for(StochasticServer serv: servers)
 		{
-			System.out.println("Nombre moyen de personne dans la file du serveur  : "+i+" "+serv.queueSizeObs.report());
-			meanQueue+=serv.queueSizeObs.average();
+			System.out.println("Nombre moyen de personne dans la file du serveur  : "+i+" "+serv.queueSizeObservations.report());
+			meanQueue+=serv.queueSizeObservations.average();
 			i++;
 		}
 		System.out.println("\nNombre moyen de personne dans les files " +meanQueue/2);
 	}
 	protected void chooseServer(Customer cust) {
 		
-		ServerStocha choosenServ = servers[0];
+		StochasticServer choosenServ = servers[0];
 		for(int i=1;i<servers.length;i++)
 		{
 			if(servers[i].isOpen())
 			{
-				if(servers[i].customerInSystem()<choosenServ.customerInSystem())
+				if(servers[i].nbCustomersInSystem()<choosenServ.nbCustomersInSystem())
 					choosenServ = servers[i];
-				else if (servers[i].customerInSystem()==choosenServ.customerInSystem()) // Si taille égal, choix random.
+				else if (servers[i].nbCustomersInSystem()==choosenServ.nbCustomersInSystem()) // Si taille égal, choix random.
 				{
 					double rand = Math.random();
 					if(rand>0.5)
@@ -115,17 +110,17 @@ public class QueueSystem {
 			}
 			
 		}
-		choosenServ.requestServer(cust);
+		choosenServ.addCustomer(cust);
 	}
 		
-	public void addWaitTimeObs(Customer cust)
+	public void addWaitTimeObservation(Customer cust)
 	{
 		double x = simulator.time()-cust.getArrivalTime();
-		meanWaitTime.add(x);
+		meanWaitTimeObservations.add(x);
 	}
-	public void addQueueSizeObs(double x)
+	public void addQueueSizeObservation(double x)
 	{
-		custoInQueue.add(x);
+		queueSizeObservations.add(x);
 	}
 	protected void manageNewCustomer() {
 		arrival.schedule(expGen.nextDouble());
@@ -158,8 +153,8 @@ public class QueueSystem {
 		}
 		public void actions(){
 			System.out.println("-------------------------Temps : "+sim.time()+"-----------------------------");
-			System.out.println(meanWaitTime.report());
-			System.out.println("Variance : "+meanWaitTime.variance());
+			System.out.println(meanWaitTimeObservations.report());
+			System.out.println("Variance : "+meanWaitTimeObservations.variance());
 			//ob.schedule(500);
 		}
 	}

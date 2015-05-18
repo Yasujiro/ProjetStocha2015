@@ -34,33 +34,33 @@ public class Main {
 	{
 		for(int i =0;i<15;i++)
 		{
-			ServerStocha[] servSystem = null;
+			StochasticServer[] servSystem = null;
 			Tally bobWaitTime = new Tally("Temps d'attente moyen du client 'changeant'");
 			QueueSystem system = null;
-			servSystem= new ServerStocha[numServers];
+			servSystem= new StochasticServer[numServers];
 			
 			switch(numSystem)
 			{
 			case 2:
-				initializeServer(servSystem,TypeServeur.Erlang,true);
+				initializeServer(servSystem,ServerType.ERLANG,true);
 				system = new QueueSystem(lambda, tempsSimulation,servSystem);
 				break;
 			case 3:
-				initializeServer(servSystem,TypeServeur.Poisson,true);
+				initializeServer(servSystem,ServerType.POISSON,true);
 				system = new RandomSelectionSystem(lambda, tempsSimulation,servSystem);
 				break;
 			case 4:
-				initializeServer(servSystem, TypeServeur.WithClose,true);
+				initializeServer(servSystem, ServerType.WITH_CLOSING,true);
 				system= new SecondSystem(lambda, tempsSimulation, servSystem);
 				break;
 			default:
-				initializeServer(servSystem,TypeServeur.Poisson,true);
+				initializeServer(servSystem,ServerType.POISSON,true);
 				system = new QueueSystem(lambda, tempsSimulation,servSystem);
 				break;						
 			}
 	
 		
-		system.LaunchSimu();
+		system.startSimulation();
 		
 	//	if(system instanceof SecondSystem)
 	//		bobWaitTime.add(((SecondSystem)system).changingCustomerWaitTime());
@@ -75,7 +75,7 @@ public class Main {
 			
 		}
 	}
-	private static void initializeServer(ServerStocha[] servSystem,TypeServeur typeServ,boolean randomSeed)
+	private static void initializeServer(StochasticServer[] servSystem,ServerType typeServ,boolean randomSeed)
 	{
 		long[] seed = new long[6];	
 		for(int i =0;i<servSystem.length;i++)
@@ -91,17 +91,17 @@ public class Main {
 			pStream.setSeed(seed);
 			switch(typeServ)
 			{
-				case Poisson:
-					servSystem[i] = new ServerPoisson(pStream,mu);
+				case POISSON:
+					servSystem[i] = new PoissonServer(pStream,mu);
 					break;
-				case Erlang:
-					servSystem[i] = new ServerErlang(pStream,kErlang,muK);
+				case ERLANG:
+					servSystem[i] = new ErlangServer(pStream,kErlang,muK);
 					break;
-				case WithClose:
+				case WITH_CLOSING:
 					if(i%2==0)
-						servSystem[i] = new ServerPoisson(pStream,mu);
+						servSystem[i] = new PoissonServer(pStream,mu);
 					else
-						servSystem[i] = new ServerPoissonWithClose(pStream, mu,6);
+						servSystem[i] = new PoissonServerWithClosing(pStream, mu,6);
 					break;
 			}
 		}

@@ -8,18 +8,18 @@ import umontreal.iro.lecuyer.stat.Tally;
 
 public class SecondSystem extends QueueSystem {
 
-	private Tally bobTimeObs;
-	private boolean bobAlreadyThere;
-	private AcceptBob accBob;
-	public SecondSystem(double lambda, double time,ServerStocha[] serv) {
+	private Tally bobTimeObservations;
+	private boolean bobIsAlreadyThere;
+	private AcceptBob acceptBob;
+	public SecondSystem(double lambda, double time, StochasticServer[] serv) {
 		super(lambda, time, serv);
-		bobAlreadyThere = false;
-		bobTimeObs = new Tally("Temps d'attente moyen de Bob");
+		bobIsAlreadyThere = false;
+		bobTimeObservations = new Tally("Temps d'attente moyen de Bob");
 	}
 	/*
 	 * Lorsqu'un serveur se ferme, dispatch tous les clients de sa file dans les files des autres serveurs.
 	 */
-	public void serverClosed(ServerStocha serv ) {
+	public void serverClosed(StochasticServer serv ) {
 		Customer cust;
 		int j =0;
 		while(serv.getQueue().size()>0)
@@ -30,19 +30,19 @@ public class SecondSystem extends QueueSystem {
 			}
 			if(j==servers.length)  j = 0;
 			cust = serv.getQueue().removeFirst();
-			servers[j].requestServer(cust);
+			servers[j].addCustomer(cust);
 		}
 	}
 	@Override
-	public void addWaitTimeObs(Customer cust)
+	public void addWaitTimeObservation(Customer cust)
 	{
 		double x = simulator.time()-cust.getArrivalTime();
-		if(cust instanceof ChangingCust)
+		if(cust instanceof ChangingCustomer)
 		{
-			bobTimeObs.add(x);
+			bobTimeObservations.add(x);
 		}
 		else
-			meanWaitTime.add(x);
+			meanWaitTimeObservations.add(x);
 	}
 	@Override
 	public void scheduleEvents()
@@ -51,7 +51,7 @@ public class SecondSystem extends QueueSystem {
 	}
 	public void bobReport()
 	{
-		System.out.println(bobTimeObs.report());
+		System.out.println(bobTimeObservations.report());
 	}
 	@Override
 	public void report()
@@ -59,13 +59,13 @@ public class SecondSystem extends QueueSystem {
 		super.report();
 	}
 	@Override
-	public void custoLeaving(Customer cust)
+	public void customerLeaving(Customer cust)
 	{
-		if(cust instanceof ChangingCust)
+		if(cust instanceof ChangingCustomer)
 		{
-			accBob = new AcceptBob(simulator);
-			accBob.schedule(500*Math.random());
-			for(ServerStocha serv:servers)
+			acceptBob = new AcceptBob(simulator);
+			acceptBob.schedule(500*Math.random());
+			for(StochasticServer serv:servers)
 			{
 				serv.setQueueSizeObserver(null);				
 				
@@ -78,35 +78,35 @@ public class SecondSystem extends QueueSystem {
 	 * @see QueueSystem#chooseServer()
 	 */
 	protected void chooseServer(Customer cust) {
-		if(cust instanceof ChangingCust)
+		if(cust instanceof ChangingCustomer)
 		{
-			ArrayList<ServerStocha> servList = new ArrayList<>();			
-			for(ServerStocha serv : servers)
+			ArrayList<StochasticServer> servList = new ArrayList<>();			
+			for(StochasticServer serv : servers)
 			{
-				if(serv instanceof ServerPoissonWithClose)
+				if(serv instanceof PoissonServerWithClosing)
 				{
-					if(((ServerPoissonWithClose)serv).isAccepChangingCust())
+					if(((PoissonServerWithClosing)serv).isAccepChangingCust())
 						servList.add(serv);
 				}
 				else
 					servList.add(serv);
 			}
-			ServerStocha choosenServ = servList.get(0);
-			for(int i=1;i<servList.size() && (choosenServ.customerInSystem()>0);i++)
+			StochasticServer choosenServ = servList.get(0);
+			for(int i=1;i<servList.size() && (choosenServ.nbCustomersInSystem()>0);i++)
 			{
-				if(servList.get(i).isOpen() && servList.get(i).customerInSystem()<choosenServ.customerInSystem())
+				if(servList.get(i).isOpen() && servList.get(i).nbCustomersInSystem()<choosenServ.nbCustomersInSystem())
 				{
 					choosenServ = servList.get(i);
 				}
-				else if (servList.get(i).customerInSystem()==choosenServ.customerInSystem()) // Si taille égal, choix random.
+				else if (servList.get(i).nbCustomersInSystem()==choosenServ.nbCustomersInSystem()) // Si taille égal, choix random.
 				{
 					double rand = Math.random();
 					if(rand>0.5)
 						choosenServ = servList.get(i);
 				}
 			}
-			choosenServ.requestServer(cust);
-			((ChangingCust)cust).setCurrentServer(choosenServ);
+			choosenServ.addCustomer(cust);
+			((ChangingCustomer)cust).setCurrentServer(choosenServ);
 		}
 		else
 			super.chooseServer(cust);
@@ -114,12 +114,12 @@ public class SecondSystem extends QueueSystem {
 	@Override
 	protected void manageNewCustomer()
 	{
-		if(!bobAlreadyThere && simulator.time() >= 20000)
+		if(!bobIsAlreadyThere && simulator.time() >= 20000)
 		{
-			bobAlreadyThere = true;
+			bobIsAlreadyThere = true;
 			arrival.schedule(expGen.nextDouble());
-			ChangingCust chanCust = new ChangingCust(simulator.time(), servers);
-			for(ServerStocha serv:servers)
+			ChangingCustomer chanCust = new ChangingCustomer(simulator.time(), servers);
+			for(StochasticServer serv:servers)
 			{
 				serv.setQueueSizeObserver(chanCust);				
 				
@@ -139,7 +139,7 @@ public class SecondSystem extends QueueSystem {
 		}
 		@Override
 		public void actions() {	
-			bobAlreadyThere = false;
+			bobIsAlreadyThere = false;
 		}		
 	}
 }

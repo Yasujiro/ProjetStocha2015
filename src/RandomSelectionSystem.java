@@ -1,16 +1,16 @@
 
 public class RandomSelectionSystem extends QueueSystem {
 
-	public RandomSelectionSystem(double lambda, double time,ServerStocha[] serv) {
+	public RandomSelectionSystem(double lambda, double time,StochasticServer[] serv) {
 		super(lambda, time,serv);
 	}
 	
 	protected void chooseServer(Customer cust) {
-		ServerStocha choosenServ = servers[0];
+		StochasticServer chosenServer = servers[0];
 		double rand = Math.random() * (servers.length - 1); // Approximatively random => Maybe there is a better choice from ssj ?
 		int discreteRand = (int) Math.round(rand);
-		choosenServ = servers[discreteRand];
-		choosenServ.requestServer(cust);
+		chosenServer = servers[discreteRand];
+		chosenServer.addCustomer(cust);
 	}
 
 }
