@@ -4,7 +4,7 @@ public class ChangingCustomer extends Customer implements QueueObserver {
 
 	private StochasticServer[] serversList;
 	private StochasticServer currentServer;
-	private int sizeDifference = 999;
+	private int sizeDifference = 1;
 	public ChangingCustomer(double arrival, StochasticServer[] servers) {
 		super(arrival);
 		serversList =servers;

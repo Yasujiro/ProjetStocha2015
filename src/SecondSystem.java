@@ -8,7 +8,7 @@ import umontreal.iro.lecuyer.stat.Tally;
 
 public class SecondSystem extends QueueSystem {
 
-	private Tally bobTimeObservations;
+	public Tally bobTimeObservations;
 	private boolean bobIsAlreadyThere;
 	private AcceptBob acceptBob;
 	public SecondSystem(double lambda, double time, StochasticServer[] serv) {
@@ -47,6 +47,7 @@ public class SecondSystem extends QueueSystem {
 	@Override
 	public void scheduleEvents()
 	{
+		acceptBob = new AcceptBob(simulator);
 		super.scheduleEvents();
 	}
 	public void bobReport()
@@ -63,11 +64,7 @@ public class SecondSystem extends QueueSystem {
 	{
 		if(cust instanceof ChangingCustomer)
 		{
-			acceptBob = new AcceptBob(simulator);
 			acceptBob.schedule(500*Math.random());
-			
-			// TEST
-			this.simulator.stop();
 			
 			for(StochasticServer serv:servers)
 			{

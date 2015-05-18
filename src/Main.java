@@ -1,6 +1,5 @@
 import umontreal.iro.lecuyer.rng.MRG31k3p;
 import umontreal.iro.lecuyer.rng.MRG32k3a;
-import umontreal.iro.lecuyer.stat.Tally;
 
 
 public class Main {
@@ -32,10 +31,9 @@ public class Main {
 	
 	private static void simulateSystem(int systemNumber,int nbServers,int simulationTime) 
 	{
-		for(int i =0;i<30;i++)
+		for(int i =0;i<15;i++)
 		{
 			StochasticServer[] servSystem = null;
-			Tally bobWaitTime = new Tally("Temps d'attente moyen du client 'changeant'");
 			QueueSystem system = null;
 			servSystem= new StochasticServer[nbServers];
 			
@@ -61,9 +59,6 @@ public class Main {
 	
 		
 		system.startSimulation();
-		
-	//	if(system instanceof SecondSystem)
-	//		bobWaitTime.add(((SecondSystem)system).changingCustomerWaitTime());
 	
 			System.out.println("\n---------------------Résultat final-----------------------");
 			System.out.println("System "+systemNumber+" avec "+nbServers+" server(s) : \n");
