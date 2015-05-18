@@ -9,13 +9,11 @@ import umontreal.iro.lecuyer.stat.Tally;
 public class SecondSystem extends QueueSystem {
 
 	private Tally bobTimeObs;
-	private int nbFermeture;
 	private boolean bobAlreadyThere;
 	private AcceptBob accBob;
 	public SecondSystem(double lambda, double time,ServerStocha[] serv) {
 		super(lambda, time, serv);
 		bobAlreadyThere = false;
-		nbFermeture = 0;
 		bobTimeObs = new Tally("Temps d'attente moyen de Bob");
 	}
 	/*
@@ -24,7 +22,6 @@ public class SecondSystem extends QueueSystem {
 	public void serverClosed(ServerStocha serv ) {
 		Customer cust;
 		int j =0;
-		nbFermeture++;
 		while(serv.getQueue().size()>0)
 		{
 			if(servers[j] == serv)
@@ -60,7 +57,6 @@ public class SecondSystem extends QueueSystem {
 	public void report()
 	{
 		super.report();
-		System.out.println("Nombre de fermeture de serveur : "+nbFermeture+"\n");
 	}
 	@Override
 	public void custoLeaving(Customer cust)
@@ -68,7 +64,7 @@ public class SecondSystem extends QueueSystem {
 		if(cust instanceof ChangingCust)
 		{
 			accBob = new AcceptBob(simulator);
-			accBob.schedule(500);
+			accBob.schedule(50);
 			for(ServerStocha serv:servers)
 			{
 				serv.setQueueSizeObserver(null);				
