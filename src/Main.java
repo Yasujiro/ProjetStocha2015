@@ -11,6 +11,8 @@ public class Main {
 	private static int kErlang = 5;
 	private static double muK = mu*kErlang;
 	private static int simulationTime = 60000;
+	
+	
 	public static void main(String[] args) 
 	{
 		
@@ -70,6 +72,7 @@ public class Main {
 			
 		}
 	}
+	
 	private static void initializeServer(StochasticServer[] systemServers, ServerType serverType, boolean randomSeed)
 	{
 		long[] seed = new long[6];	

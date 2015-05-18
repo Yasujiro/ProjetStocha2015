@@ -6,23 +6,23 @@ import umontreal.iro.lecuyer.stat.Tally;
 
 
 public class QueueSystem {
-	protected StochasticServer[] servers;
+	protected StochasticServer[] servers; // Liste des serveurs du système
 	private double lambda;
-	protected Simulator simulator;
-	protected Arrival arrival;
+	protected Simulator simulator; // Le scheduler, contient la liste des évênements de la simulation
+	protected Arrival arrival; // Evenement d'arrivée d'un client
 	protected ExponentialGen expGen;
-	protected double simulationTime;
-	private Tally queueSizeObservations;
+	protected double simulationTime; // Temps de simulation du système
+	private Tally queueSizeObservations; // Liste d'observations des tailles de file
 	//private StatsObserver ob;
-	protected Tally meanWaitTimeObservations; //Liste d'observation des temps d'attente.
+	protected Tally waitTimeObservations; // Liste d'observation des temps d'attente
 
 	
 	public QueueSystem(double lambda, double time, StochasticServer[] servers)
 	{
-		this.simulator = new Simulator(); //Instance de simulation, contient la liste des events, le scheduler.
+		this.simulator = new Simulator(); 
 		this.lambda = lambda;
 		this.simulationTime = time;	
-		this.meanWaitTimeObservations = new Tally("Temps d'attente moyen");
+		this.waitTimeObservations = new Tally("Temps d'attente moyen");
 		this.queueSizeObservations = new Tally();
 		this.arrival = new Arrival();
 		//ob = new StatsObserver(simulator);
@@ -43,12 +43,13 @@ public class QueueSystem {
 	}
 
 	protected void scheduleEvents() {
-		arrival.schedule(expGen.nextDouble());//Programme l'event pour le temps t =simulator.time+X (X étant généré)
+		arrival.schedule(expGen.nextDouble()); // Programme l'event pour le temps t = simulator.time + X (X étant généré)
 		EndOfSim endofSimEvent = new EndOfSim();
 		endofSimEvent.setSimulator(simulator);
 		//ob.schedule(500);
-		endofSimEvent.schedule(simulationTime); //Programme l'event pour le temps t =simulator.time+timeOfSim
+		endofSimEvent.schedule(simulationTime); // Programme l'event pour le temps t = simulator.time + timeOfSim
 	}
+	
 	private void initializeArrivalGen() {
 		long[] seed = new long[6];
 		for(int i =0 ; i<seed.length;i++)
@@ -60,25 +61,25 @@ public class QueueSystem {
 		expGen = new ExponentialGen(expStream, lambda);
 		
 	}
+	
 	public StochasticServer getServer(int i)
 	{
 		return servers[i];
 	}
+	
+	// Cette méthode est utilisée pour tout traitement à réaliser lorsqu'un client quitte le système
 	public void customerLeaving(Customer cust)
 	{
-		/*
-		 * Used this methode for any update to make when customer leave the system.
-		 */
 		return;
 	}
+	
 	public void report()
 	{
-		if(meanWaitTimeObservations.numberObs()>0)
+		if(waitTimeObservations.numberObs()>0)
 		{
-			System.out.println(meanWaitTimeObservations.report()+"\n");
-			System.out.println("Variance : "+meanWaitTimeObservations.variance()+"\n");
+			System.out.println(waitTimeObservations.report()+"\n");
+			System.out.println("Variance : "+waitTimeObservations.variance()+"\n");
 		}
-		//QueueReport();
 	}
 
 	protected void queueReport() {
@@ -92,36 +93,42 @@ public class QueueSystem {
 		}
 		System.out.println("\nNombre moyen de personne dans les files " +meanQueue/2);
 	}
+	
 	protected void chooseServer(Customer cust) {
 		
-		StochasticServer choosenServ = servers[0];
+		StochasticServer chosenServer = servers[0];
 		for(int i=1;i<servers.length;i++)
 		{
 			if(servers[i].isOpen())
 			{
-				if(servers[i].nbCustomersInSystem()<choosenServ.nbCustomersInSystem())
-					choosenServ = servers[i];
-				else if (servers[i].nbCustomersInSystem()==choosenServ.nbCustomersInSystem()) // Si taille égal, choix random.
+				// Si l'autre serveur a moins de clients
+				if(servers[i].nbCustomersInSystem() < chosenServer.nbCustomersInSystem())
+					chosenServer = servers[i];
+				// Si les deux serveurs ont la même taille
+				else if (servers[i].nbCustomersInSystem() == chosenServer.nbCustomersInSystem())
 				{
-					double rand = Math.random();
+					// On choisit le serveur aléatoirement
+					double rand = Math.random(); // Distribution uniforme
 					if(rand>0.5)
-						choosenServ = servers[i];
+						chosenServer = servers[i];
 				}
 			}
 			
 		}
-		choosenServ.addCustomer(cust);
+		chosenServer.addCustomer(cust);
 	}
 		
 	public void addWaitTimeObservation(Customer cust)
 	{
 		double x = simulator.time()-cust.getArrivalTime();
-		meanWaitTimeObservations.add(x);
+		waitTimeObservations.add(x);
 	}
+	
 	public void addQueueSizeObservation(double x)
 	{
 		queueSizeObservations.add(x);
 	}
+	
 	protected void manageNewCustomer() {
 		arrival.schedule(expGen.nextDouble());
 		Customer cust = new Customer(simulator.time());			
@@ -129,8 +136,8 @@ public class QueueSystem {
 		
 	}
 
-	
-	
+
+	// Évènement d'arrivée d'un client
 	class Arrival extends Event{
 		@Override
 		public void actions() {		
@@ -139,6 +146,7 @@ public class QueueSystem {
 		
 	}
 	
+	// Évènement de fin de la simulation
 	class EndOfSim extends Event{
 		@Override
 		public void actions() {	
@@ -146,6 +154,8 @@ public class QueueSystem {
 		}		
 	}
 	
+	// Évènement produisant un "snapshot" de l'état du système
+	// Cet évènement est généralement planifié à intervalle régulier
 	class StatsObserver extends Event{
 		public StatsObserver(Simulator sim)
 		{
@@ -153,8 +163,8 @@ public class QueueSystem {
 		}
 		public void actions(){
 			System.out.println("-------------------------Temps : "+sim.time()+"-----------------------------");
-			System.out.println(meanWaitTimeObservations.report());
-			System.out.println("Variance : "+meanWaitTimeObservations.variance());
+			System.out.println(waitTimeObservations.report());
+			System.out.println("Variance : "+waitTimeObservations.variance());
 			//ob.schedule(500);
 		}
 	}

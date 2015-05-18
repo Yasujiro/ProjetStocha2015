@@ -8,17 +8,16 @@ import umontreal.iro.lecuyer.stat.Tally;
 
 public class SecondSystem extends QueueSystem {
 
-	public Tally bobTimeObservations;
-	private boolean bobIsAlreadyThere;
-	private AcceptBob acceptBob;
+	public Tally bobTimeObservations; // Liste d'observations des temps d'attente de bob
+	private boolean bobIsAlreadyThere; // Indique si le serveur possède déjà un "ChangingCustomer"
+	private AcceptBob acceptBob; // Évènement indiquant quand le système peut reprogrammer l'arrivée d'un "ChangingCustomer"
 	public SecondSystem(double lambda, double time, StochasticServer[] serv) {
 		super(lambda, time, serv);
 		bobIsAlreadyThere = false;
 		bobTimeObservations = new Tally("Temps d'attente moyen de Bob");
 	}
-	/*
-	 * Lorsqu'un serveur se ferme, dispatch tous les clients de sa file dans les files des autres serveurs.
-	 */
+	
+	// Lorsqu'un serveur se ferme, il transfère tous les clients de sa file dans les files des autres serveurs.
 	public void serverClosed(StochasticServer serv ) {
 		Customer cust;
 		int j =0;
@@ -33,6 +32,7 @@ public class SecondSystem extends QueueSystem {
 			servers[j].addCustomer(cust);
 		}
 	}
+	
 	@Override
 	public void addWaitTimeObservation(Customer cust)
 	{
@@ -42,23 +42,27 @@ public class SecondSystem extends QueueSystem {
 			bobTimeObservations.add(x);
 		}
 		else
-			meanWaitTimeObservations.add(x);
+			waitTimeObservations.add(x);
 	}
+	
 	@Override
 	public void scheduleEvents()
 	{
 		acceptBob = new AcceptBob(simulator);
 		super.scheduleEvents();
 	}
+	
 	public void bobReport()
 	{
 		System.out.println(bobTimeObservations.report());
 	}
+	
 	@Override
 	public void report()
 	{
 		super.report();
 	}
+	
 	@Override
 	public void customerLeaving(Customer cust)
 	{
@@ -73,9 +77,10 @@ public class SecondSystem extends QueueSystem {
 			}
 		}
 	}
+	
 	/*
 	 * Sélectionne le serveur où envoyer le client.
-	 * Choisit le serveur ouvert du système avec le moins de personne dedans.
+	 * Choisit le serveur ouvert du système avec le moins de personnes dedans.
 	 * @see QueueSystem#chooseServer()
 	 */
 	protected void chooseServer(Customer cust) {
@@ -86,7 +91,7 @@ public class SecondSystem extends QueueSystem {
 			{
 				if(serv instanceof PoissonServerWithClosing)
 				{
-					if(((PoissonServerWithClosing)serv).isAccepChangingCust())
+					if(((PoissonServerWithClosing)serv).isAcceptingChangingCustomer())
 						servList.add(serv);
 				}
 				else
@@ -112,6 +117,7 @@ public class SecondSystem extends QueueSystem {
 		else
 			super.chooseServer(cust);
 	}
+	
 	@Override
 	protected void manageNewCustomer()
 	{
@@ -133,11 +139,14 @@ public class SecondSystem extends QueueSystem {
 		}
 	}
 	
+	// Évènement indiquant quand le système peut reprogrammer l'arrivée d'un "ChangingCustomer"
 	class AcceptBob extends Event{
+		
 		public AcceptBob(Simulator sim)
 		{
 			setSimulator(sim);
 		}
+		
 		@Override
 		public void actions() {	
 			bobIsAlreadyThere = false;

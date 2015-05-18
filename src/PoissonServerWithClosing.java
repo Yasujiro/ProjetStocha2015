@@ -9,11 +9,13 @@ public class PoissonServerWithClosing extends PoissonServer {
 
 	private boolean isOpen;
 	private boolean acceptChangingCustomers;
-	private int nbCustomersToClose; //Nombre de personne avant de fermer.
+	private int nbCustomersToClose; // Nombre de personne avant la fermeture du serveur. ("n" dans l'énoncé)
 	private static MRG31k3p randomGen = new MRG31k3p();
 	private ExponentialGen closingTimeGen;
-	private boolean tresholdCrossed;
-	private AcceptNewChangingCust acceptNewChangingCust;
+	private boolean tresholdCrossed; // Indique si le serveur peut se remettre en fermeture
+	private AcceptNewChangingCust acceptNewChangingCust; // Évènement indiquant quand le serveur accepte un "ChangingCustomer"
+	
+	
 	public PoissonServerWithClosing(MRG32k3a dis, double mu,int custToClose) {
 		super(dis, mu);
 		isOpen = true;
@@ -28,18 +30,22 @@ public class PoissonServerWithClosing extends PoissonServer {
 	{
 		return isOpen;
 	}
+	
 	@Override
 	public void setSimulator(Simulator sim)
 	{
 		super.setSimulator(sim);
 	}
+	
 	protected void setSystem(QueueSystem obs)
 	{
 		this.system = (SecondSystem)obs;
 	}
-	public boolean isAccepChangingCust() {
+	
+	public boolean isAcceptingChangingCustomer() {
 		return acceptChangingCustomers&&isOpen;
 	}
+	
 	@Override
 	public void addCustomer(Customer cust)
 	{
@@ -49,6 +55,7 @@ public class PoissonServerWithClosing extends PoissonServer {
 			tresholdCrossed = true;
 		}
 	}
+	
 	@Override
 	protected Customer endOfService()
 	{
@@ -66,11 +73,12 @@ public class PoissonServerWithClosing extends PoissonServer {
 		}
 		return leavingCust;
 	}
+	
+	// Évènement d'ouverture du serveur
 	class Opening extends Event{
 
 		@Override
-		/*Méthode invoqué lors que l'évent survient.
-		*/
+		// Méthode invoquée lorsque l'évent survient.
 		public void actions() {
 			isOpen = true;
 			acceptNewChangingCust = new AcceptNewChangingCust(simulator);
@@ -78,14 +86,16 @@ public class PoissonServerWithClosing extends PoissonServer {
 		}
 		
 	}
+	
+	// Évènement indiquant quand le serveur accepte un "ChangingCustomer"
 	class AcceptNewChangingCust extends Event{
 
 		public AcceptNewChangingCust(Simulator simulator) {
 			setSimulator(simulator);
 		}
+		
 		@Override
-		/*Méthode invoqué lors que l'évent survient.
-		*/
+		// Méthode invoquée lorsque l'évent survient.
 		public void actions() {	
 			if(isOpen)
 				acceptChangingCustomers = true;
