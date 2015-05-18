@@ -8,7 +8,7 @@ public class Main {
 	public static MRG31k3p randomSeedGen = new MRG31k3p();
 	private static double mu = 2;
 	private static int nbServeur = 2;
-	private static double lambda = 3;
+	private static double lambda = 3.8;
 	private static int kErlang = 5;
 	private static double muK = mu*kErlang;
 	private static int tempsSimu = 60000;
@@ -16,7 +16,7 @@ public class Main {
 	{
 		
 		//simulateSystem(1,1,tempsSimu);		
-		simulateSystem(1,nbServeur,tempsSimu);
+		//simulateSystem(1,nbServeur,tempsSimu);
 		//simulateSystem(2,1);
 		//simulateSystem(2,nbServeur,tempsSimu);
 		//simulateSystem(3,1);
@@ -25,7 +25,7 @@ public class Main {
 		 * Simulation partie 2
 		 * 
 		 */		
-		//simulateSystem(4,nbServeur,tempsSimu);
+		simulateSystem(4,nbServeur,tempsSimu);
 		
 
 	}
@@ -101,7 +101,7 @@ public class Main {
 					if(i%2==0)
 						servSystem[i] = new ServerPoisson(pStream,mu);
 					else
-						servSystem[i] = new ServerPoissonWithClose(pStream, mu,10);
+						servSystem[i] = new ServerPoissonWithClose(pStream, mu,6);
 					break;
 			}
 		}

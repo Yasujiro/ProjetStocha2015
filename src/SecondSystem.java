@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 
+import umontreal.iro.lecuyer.simevents.Event;
+import umontreal.iro.lecuyer.simevents.Simulator;
 import umontreal.iro.lecuyer.stat.Tally;
 
 
@@ -9,6 +11,7 @@ public class SecondSystem extends QueueSystem {
 	private Tally bobTimeObs;
 	private int nbFermeture;
 	private boolean bobAlreadyThere;
+	private AcceptBob accBob;
 	public SecondSystem(double lambda, double time,ServerStocha[] serv) {
 		super(lambda, time, serv);
 		bobAlreadyThere = false;
@@ -45,9 +48,9 @@ public class SecondSystem extends QueueSystem {
 			meanWaitTime.add(x);
 	}
 	@Override
-	public void scheduledEvents()
+	public void scheduleEvents()
 	{
-		super.scheduledEvents();
+		super.scheduleEvents();
 	}
 	public void bobReport()
 	{
@@ -64,7 +67,8 @@ public class SecondSystem extends QueueSystem {
 	{
 		if(cust instanceof ChangingCust)
 		{
-			bobAlreadyThere = false;
+			accBob = new AcceptBob(simulator);
+			accBob.schedule(500);
 			for(ServerStocha serv:servers)
 			{
 				serv.setQueueSizeObserver(null);				
@@ -130,5 +134,16 @@ public class SecondSystem extends QueueSystem {
 		else{
 			super.manageNewCustomer();
 		}
+	}
+	
+	class AcceptBob extends Event{
+		public AcceptBob(Simulator sim)
+		{
+			setSimulator(sim);
+		}
+		@Override
+		public void actions() {	
+			bobAlreadyThere = false;
+		}		
 	}
 }

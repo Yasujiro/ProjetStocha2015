@@ -18,7 +18,7 @@ public class QueueSystem {
 	protected ExponentialGen expGen;
 	protected double timeOfSim;
 	private Tally custoInQueue;
-	private StatsObserver ob;
+	//private StatsObserver ob;
 	protected Tally meanWaitTime; //Liste d'observation des temps d'attente.
 
 	
@@ -30,7 +30,7 @@ public class QueueSystem {
 		meanWaitTime = new Tally("Temps d'attente moyen");
 		custoInQueue = new Tally();
 		arrival = new Arrival();
-		ob = new StatsObserver(simulator);
+		//ob = new StatsObserver(simulator);
 		arrival.setSimulator(simulator);
 		initializeArrivalGen();
 		servers = servs;
@@ -43,15 +43,15 @@ public class QueueSystem {
 
 	public void LaunchSimu() {
 		simulator.init();
-		scheduledEvents();
+		scheduleEvents();
 		simulator.start();		
 	}
 
-	protected void scheduledEvents() {
+	protected void scheduleEvents() {
 		arrival.schedule(expGen.nextDouble());//Programme l'event pour le temps t =simulator.time+X (X étant généré)
 		EndOfSim endofSimEvent = new EndOfSim();
 		endofSimEvent.setSimulator(simulator);
-		ob.schedule(500);
+		//ob.schedule(500);
 		endofSimEvent.schedule(timeOfSim); //Programme l'event pour le temps t =simulator.time+timeOfSim
 	}
 	private void initializeArrivalGen() {
@@ -157,10 +157,10 @@ public class QueueSystem {
 			this.setSimulator(sim);
 		}
 		public void actions(){
-//			System.out.println("-------------------------Temps : "+sim.time()+"-----------------------------");
-//			System.out.println(meanWaitTime.report());
-//			System.out.println("Variance : "+meanWaitTime.variance());
-//			ob.schedule(500);
+			System.out.println("-------------------------Temps : "+sim.time()+"-----------------------------");
+			System.out.println(meanWaitTime.report());
+			System.out.println("Variance : "+meanWaitTime.variance());
+			//ob.schedule(500);
 		}
 	}
 

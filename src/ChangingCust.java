@@ -4,7 +4,7 @@ public class ChangingCust extends Customer implements QueueObserver {
 
 	private ServerStocha[] serverList;
 	private ServerStocha currentServer;
-	private int sizeDiff =1;
+	private int sizeDiff =3;
 	public ChangingCust(double arrival,ServerStocha[] servers) {
 		super(arrival);
 		serverList =servers;
