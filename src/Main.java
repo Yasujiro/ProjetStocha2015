@@ -7,11 +7,11 @@ public class Main {
 	
 	public static MRG31k3p randomSeedGen = new MRG31k3p();
 	private static double mu = 2;
-	private static int nbServeur = 2;
+	private static int nbServers = 2;
 	private static double lambda = 3.8;
 	private static int kErlang = 5;
 	private static double muK = mu*kErlang;
-	private static int tempsSimu = 60000;
+	private static int simulationTime = 60000;
 	public static void main(String[] args) 
 	{
 		
@@ -25,37 +25,37 @@ public class Main {
 		 * Simulation partie 2
 		 * 
 		 */		
-		simulateSystem(4,nbServeur,tempsSimu);
+		simulateSystem(4,nbServers,simulationTime);
 		
 
 	}
 	
-	private static void simulateSystem(int numSystem,int numServers,int tempsSimulation) 
+	private static void simulateSystem(int systemNumber,int nbServers,int simulationTime) 
 	{
-		for(int i =0;i<15;i++)
+		for(int i =0;i<30;i++)
 		{
 			StochasticServer[] servSystem = null;
 			Tally bobWaitTime = new Tally("Temps d'attente moyen du client 'changeant'");
 			QueueSystem system = null;
-			servSystem= new StochasticServer[numServers];
+			servSystem= new StochasticServer[nbServers];
 			
-			switch(numSystem)
+			switch(systemNumber)
 			{
 			case 2:
 				initializeServer(servSystem,ServerType.ERLANG,true);
-				system = new QueueSystem(lambda, tempsSimulation,servSystem);
+				system = new QueueSystem(lambda, simulationTime,servSystem);
 				break;
 			case 3:
 				initializeServer(servSystem,ServerType.POISSON,true);
-				system = new RandomSelectionSystem(lambda, tempsSimulation,servSystem);
+				system = new RandomSelectionSystem(lambda, simulationTime,servSystem);
 				break;
 			case 4:
 				initializeServer(servSystem, ServerType.WITH_CLOSING,true);
-				system= new SecondSystem(lambda, tempsSimulation, servSystem);
+				system= new SecondSystem(lambda, simulationTime, servSystem);
 				break;
 			default:
 				initializeServer(servSystem,ServerType.POISSON,true);
-				system = new QueueSystem(lambda, tempsSimulation,servSystem);
+				system = new QueueSystem(lambda, simulationTime,servSystem);
 				break;						
 			}
 	
@@ -66,7 +66,7 @@ public class Main {
 	//		bobWaitTime.add(((SecondSystem)system).changingCustomerWaitTime());
 	
 			System.out.println("\n---------------------Résultat final-----------------------");
-			System.out.println("System "+numSystem+" avec "+numServers+" server(s) : \n");
+			System.out.println("System "+systemNumber+" avec "+nbServers+" server(s) : \n");
 			system.report();
 			
 			if(system instanceof SecondSystem)
@@ -75,10 +75,10 @@ public class Main {
 			
 		}
 	}
-	private static void initializeServer(StochasticServer[] servSystem,ServerType typeServ,boolean randomSeed)
+	private static void initializeServer(StochasticServer[] systemServers, ServerType serverType, boolean randomSeed)
 	{
 		long[] seed = new long[6];	
-		for(int i =0;i<servSystem.length;i++)
+		for(int i =0;i<systemServers.length;i++)
 		{
 			for(int j =0 ; j<seed.length;j++)
 			{
@@ -89,19 +89,19 @@ public class Main {
 			}			
 			MRG32k3a pStream = new MRG32k3a();
 			pStream.setSeed(seed);
-			switch(typeServ)
+			switch(serverType)
 			{
 				case POISSON:
-					servSystem[i] = new PoissonServer(pStream,mu);
+					systemServers[i] = new PoissonServer(pStream,mu);
 					break;
 				case ERLANG:
-					servSystem[i] = new ErlangServer(pStream,kErlang,muK);
+					systemServers[i] = new ErlangServer(pStream,kErlang,muK);
 					break;
 				case WITH_CLOSING:
 					if(i%2==0)
-						servSystem[i] = new PoissonServer(pStream,mu);
+						systemServers[i] = new PoissonServer(pStream,mu);
 					else
-						servSystem[i] = new PoissonServerWithClosing(pStream, mu,6);
+						systemServers[i] = new PoissonServerWithClosing(pStream, mu,6);
 					break;
 			}
 		}

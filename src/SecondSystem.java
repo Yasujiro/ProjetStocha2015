@@ -65,6 +65,10 @@ public class SecondSystem extends QueueSystem {
 		{
 			acceptBob = new AcceptBob(simulator);
 			acceptBob.schedule(500*Math.random());
+			
+			// TEST
+			this.simulator.stop();
+			
 			for(StochasticServer serv:servers)
 			{
 				serv.setQueueSizeObserver(null);				
