@@ -9,7 +9,7 @@ public class PoissonServerWithClosing extends PoissonServer {
 
 	private boolean isOpen;
 	private boolean acceptChangingCustomers;
-	private int nbCustomersToClose; // Nombre de personne avant la fermeture du serveur. ("n" dans l'énoncé)
+	private int nbCustomersToClose; // Nombre de personne avant la fermeture du serveur. ("K" dans l'énoncé)
 	private static MRG31k3p randomGen = new MRG31k3p();
 	private ExponentialGen closingTimeGen;
 	private boolean tresholdCrossed; // Indique si le serveur peut se remettre en fermeture
